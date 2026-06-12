@@ -74,6 +74,11 @@ section eq ≔
     : eq (eq A a0 a1) a01 a01'
     ≔ match a12 [ rfl. ↦ a02 ]
 
+def ap2 (A B C : Type) (f : A → B → C) (a0 a1 : A) (a2 : eq A a0 a1)
+  (b0 b1 : B) (b2 : eq B b0 b1)
+  : eq C (f a0 b0) (f a1 b1)
+  ≔ match a2, b2 [ rfl., rfl. ↦ rfl. ]
+
 end
 
 def eq ≔ eq.eq
@@ -101,6 +106,59 @@ def ap3d (A : Type) (B : A → Type) (C : (a : A) → B a → Type) (D : Type)
   (c1 : C a1 b1) (c2 : eqdd A B C a0 a1 a2 b0 b1 b2 c0 c1)
   : eq D (f a0 b0 c0) (f a1 b1 c1)
   ≔ match a2, b2, c2 [ rfl., rfl., rfl. ↦ rfl. ]
+
+
+def eq2d (A B : Type) (C : A → B → Type) (a0 a1 : A) (a2 : eq A a0 a1)
+  (b0 b1 : B) (b2 : eq B b0 b1) (c0 : C a0 b0) (c1 : C a1 b1)
+  : Type
+  ≔ match a2, b2 [ rfl., rfl. ↦ eq (C a0 b0) c0 c1 ]
+
+def eq.ap21 (A B : Type) (C : A → B → Type) (D : Type)
+  (f : (x : A) (y : B) (z : C x y) → D) (a0 a1 : A) (a2 : eq A a0 a1)
+  (b0 b1 : B) (b2 : eq B b0 b1) (c0 : C a0 b0) (c1 : C a1 b1)
+  (c2 : eq2d A B C a0 a1 a2 b0 b1 b2 c0 c1)
+  : eq D (f a0 b0 c0) (f a1 b1 c1)
+  ≔ match a2, b2, c2 [ rfl., rfl., rfl. ↦ rfl. ]
+
+def eq.ap212 (A B : Type) (C : A → B → Type) (D : A → Type) (E : B → Type)
+  (F : Type) (f : (x : A) (y : B) (z : C x y) (u : D x) (v : E y) → F)
+  (a0 a1 : A) (a2 : eq A a0 a1) (b0 b1 : B) (b2 : eq B b0 b1)
+  (c0 : C a0 b0) (c1 : C a1 b1) (c2 : eq2d A B C a0 a1 a2 b0 b1 b2 c0 c1)
+  (d0 : D a0) (d1 : D a1) (d2 : eqd A D a0 a1 a2 d0 d1) (e0 : E b0)
+  (e1 : E b1) (e2 : eqd B E b0 b1 b2 e0 e1)
+  : eq F (f a0 b0 c0 d0 e0) (f a1 b1 c1 d1 e1)
+  ≔ match a2, b2, c2, d2, e2 [ rfl., rfl., rfl., rfl., rfl. ↦ rfl. ]
+
+def eq212 (A B : Type) (C : A → B → Type) (D : A → Type) (E : B → Type)
+  (F : (x : A) (y : B) (z : C x y) (u : D x) (v : E y) → Type) (a0 a1 : A)
+  (a2 : eq A a0 a1) (b0 b1 : B) (b2 : eq B b0 b1) (c0 : C a0 b0)
+  (c1 : C a1 b1) (c2 : eq2d A B C a0 a1 a2 b0 b1 b2 c0 c1) (d0 : D a0)
+  (d1 : D a1) (d2 : eqd A D a0 a1 a2 d0 d1) (e0 : E b0) (e1 : E b1)
+  (e2 : eqd B E b0 b1 b2 e0 e1) (f0 : F a0 b0 c0 d0 e0)
+  (f1 : F a1 b1 c1 d1 e1)
+  : Type
+  ≔ match a2, b2, c2, d2, e2 [
+| rfl., rfl., rfl., rfl., rfl. ↦ eq (F a0 b0 c0 d0 e0) f0 f1]
+
+def eq.ap2121 (A B : Type) (C : A → B → Type) (D : A → Type) (E : B → Type)
+  (F : (x : A) (y : B) (z : C x y) (u : D x) (v : E y) → Type) (G : Type)
+  (f : (x : A) (y : B) (z : C x y) (u : D x) (v : E y) → F x y z u v → G)
+  (a0 a1 : A) (a2 : eq A a0 a1) (b0 b1 : B) (b2 : eq B b0 b1)
+  (c0 : C a0 b0) (c1 : C a1 b1) (c2 : eq2d A B C a0 a1 a2 b0 b1 b2 c0 c1)
+  (d0 : D a0) (d1 : D a1) (d2 : eqd A D a0 a1 a2 d0 d1) (e0 : E b0)
+  (e1 : E b1) (e2 : eqd B E b0 b1 b2 e0 e1) (f0 : F a0 b0 c0 d0 e0)
+  (f1 : F a1 b1 c1 d1 e1)
+  (f2 : eq212 A B C D E F a0 a1 a2 b0 b1 b2 c0 c1 c2 d0 d1 d2 e0 e1 e2 f0
+          f1)
+  : eq G (f a0 b0 c0 d0 e0 f0) (f a1 b1 c1 d1 e1 f1)
+  ≔ match a2, b2, c2, d2, e2, f2 [
+| rfl., rfl., rfl., rfl., rfl., rfl. ↦ rfl.]
+
+def eq.ap1d (A : Type) (B C : A → Type) (f : (x : A) → B x → C x)
+  (a0 a1 : A) (a2 : eq A a0 a1) (b0 : B a0) (b1 : B a1)
+  (b2 : eqd A B a0 a1 a2 b0 b1)
+  : eqd A C a0 a1 a2 (f a0 b0) (f a1 b1)
+  ≔ match a2, b2 [ rfl., rfl. ↦ rfl. ]
 
 section sq ≔
 
