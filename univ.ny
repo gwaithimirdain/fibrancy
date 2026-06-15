@@ -201,59 +201,134 @@ def help (∂₀ : Fib) (∂₁ : Fib) (∂₂ : Fib⁽ᵖ⁾ ∂₀ ∂₁) (R�
   : (∂₂ .t ⇒ Fib⁽ᵖ⁾) R₀ R₁'
   ≔ x ⤇ comp (R₀ x.0) (R₁ x.1) (R₁' x.1) (R₂ x.2) (R₁₂ (rel x.1))
 
-def BrFibUnfolded (A₀ A₁ : Fib) : Type ≔ codata [
-| x .R : Br Type (A₀ .t) (A₁ .t)
+def BrFibRest (A₀ A₁ : Fib) (A₂ : Br Type (A₀ .t) (A₁ .t))
+  (_ : (x₀ : A₀ .t) → (x₁ : A₁ .t) → isFibrant (A₂ x₀ x₁))
+  : Type
+  ≔ codata [
 | x .trr1 : A₀ .t → A₁ .t
 | x .trr.p
-  : {𝑥₀ : A₀.0 .t} {𝑥₁ : A₁.0 .t} (𝑥₂ : x.0 .R 𝑥₀ 𝑥₁)
-    →⁽ᵖ⁾ x.1 .R (A₀.2 .f .trr 𝑥₀) (A₁.2 .f .trr 𝑥₁)
+  : {𝑥₀ : A₀.0 .t} {𝑥₁ : A₁.0 .t} (𝑥₂ : A₂.0 𝑥₀ 𝑥₁)
+    →⁽ᵖ⁾ A₂.1 (A₀.2 .f .trr 𝑥₀) (A₁.2 .f .trr 𝑥₁)
 | x .trl1 : A₁ .t → A₀ .t
 | x .trl.p
-  : {𝑥₀ : A₀.1 .t} {𝑥₁ : A₁.1 .t} (𝑥₂ : x.1 .R 𝑥₀ 𝑥₁)
-    →⁽ᵖ⁾ x.0 .R (A₀.2 .f .trl 𝑥₀) (A₁.2 .f .trl 𝑥₁)
-| x .liftr1 : (a₀ : A₀ .t) → x .R a₀ (x .trr1 a₀)
+  : {𝑥₀ : A₀.1 .t} {𝑥₁ : A₁.1 .t} (𝑥₂ : A₂.1 𝑥₀ 𝑥₁)
+    →⁽ᵖ⁾ A₂.0 (A₀.2 .f .trl 𝑥₀) (A₁.2 .f .trl 𝑥₁)
+| x .liftr1 : (a₀ : A₀ .t) → A₂ a₀ (x .trr1 a₀)
 | x .liftr.p
-  : {a₀₀ : A₀.0 .t} {a₀₁ : A₁.0 .t} (a₀₂ : x.0 .R a₀₀ a₀₁)
-    →⁽ᵖ⁾ sym (x.2 .R) a₀₂ (x.2 .trr a₀₂) (A₀.2 .f .liftr a₀₀)
+  : {a₀₀ : A₀.0 .t} {a₀₁ : A₁.0 .t} (a₀₂ : A₂.0 a₀₀ a₀₁)
+    →⁽ᵖ⁾ sym (A₂.2) a₀₂ (x.2 .trr a₀₂) (A₀.2 .f .liftr a₀₀)
            (A₁.2 .f .liftr a₀₁)
-| x .liftl1 : (a₁ : A₁ .t) → x .R (x .trl1 a₁) a₁
+| x .liftl1 : (a₁ : A₁ .t) → A₂ (x .trl1 a₁) a₁
 | x .liftl.p
-  : {a₁₀ : A₀.1 .t} {a₁₁ : A₁.1 .t} (a₁₂ : x.1 .R a₁₀ a₁₁)
-    →⁽ᵖ⁾ sym (x.2 .R) (x.2 .trl a₁₂) a₁₂ (A₀.2 .f .liftl a₁₀)
+  : {a₁₀ : A₀.1 .t} {a₁₁ : A₁.1 .t} (a₁₂ : A₂.1 a₁₀ a₁₁)
+    →⁽ᵖ⁾ sym (A₂.2) (x.2 .trl a₁₂) a₁₂ (A₀.2 .f .liftl a₁₀)
            (A₁.2 .f .liftl a₁₁)
-| x .id1 : (a₀ : A₀ .t) (a₁ : A₁ .t) → isFibrant (x .R a₀ a₁)
 | x .id.p
-  : {a₀₀ : A₀.0 .t} {a₀₁ : A₁.0 .t} (a₀₂ : x.0 .R a₀₀ a₀₁) {a₁₀ : A₀.1 .t}
-    {a₁₁ : A₁.1 .t} (a₁₂ : x.1 .R a₁₀ a₁₁)
-    →⁽ᵖ⁾ isFibrant⁽ᵖ⁾ (sym (x.2 .R) a₀₂ a₁₂) (A₀.2 .f .id a₀₀ a₁₀)
+  : {a₀₀ : A₀.0 .t} {a₀₁ : A₁.0 .t} (a₀₂ : A₂.0 a₀₀ a₀₁) {a₁₀ : A₀.1 .t}
+    {a₁₁ : A₁.1 .t} (a₁₂ : A₂.1 a₁₀ a₁₁)
+    →⁽ᵖ⁾ isFibrant⁽ᵖ⁾ (sym (A₂.2) a₀₂ a₁₂) (A₀.2 .f .id a₀₀ a₁₀)
            (A₁.2 .f .id a₀₁ a₁₁) ]
 
+def BrFibRest (A₀ A₁ : Fib) (A₂ : (A₀ .t) → (A₁ .t) → Type) : Type
+  ≔ codata [
+| x .trr1 : A₀ .t → A₁ .t
+| x .trr.p
+  : (𝑥₀ : A₀.0 .t) (𝑥₁ : A₁.0 .t) (𝑥₂ : A₂.0 𝑥₀ 𝑥₁)
+    → A₂.1 (A₀.2 .f .trr 𝑥₀) (A₁.2 .f .trr 𝑥₁)
+| x .trl1 : A₁ .t → A₀ .t
+| x .trl.p
+  : (𝑥₀ : A₀.1 .t) (𝑥₁ : A₁.1 .t) (𝑥₂ : A₂.1 𝑥₀ 𝑥₁)
+    → A₂.0 (A₀.2 .f .trl 𝑥₀) (A₁.2 .f .trl 𝑥₁)
+| x .liftr1 : (a₀ : A₀ .t) → A₂ a₀ (x .trr1 a₀)
+| x .liftr.p
+  : (a₀₀ : A₀.0 .t) (a₀₁ : A₁.0 .t) (a₀₂ : A₂.0 a₀₀ a₀₁)
+    → A₂.2 (A₀.2 .f .liftr a₀₀) (A₁.2 .f .liftr a₀₁) a₀₂
+        (x.2 .trr a₀₀ a₀₁ a₀₂)
+| x .liftl1 : (a₁ : A₁ .t) → A₂ (x .trl1 a₁) a₁
+| x .liftl.p
+  : (a₁₀ : A₀.1 .t) (a₁₁ : A₁.1 .t) (a₁₂ : A₂.1 a₁₀ a₁₁)
+    → A₂.2 (A₀.2 .f .liftl a₁₀) (A₁.2 .f .liftl a₁₁) (x.2 .trl a₁₀ a₁₁ a₁₂)
+        a₁₂
+`sym (A₂.2) (x.2 .trl a₁₂) a₁₂ (A₀.2 .f .liftl a₁₀)
+`    (A₁.2 .f .liftl a₁₁)
+| x .id.p
+  : (a₀₀ : A₀.0 .t) (a₀₁ : A₁.0 .t) (a₀₂ : A₂.0 a₀₀ a₀₁) (a₁₀ : A₀.1 .t)
+    (a₁₁ : A₁.1 .t) (a₁₂ : A₂.1 a₁₀ a₁₁)
+    → ¿isFibrant⁽ᵖ⁾ ( (A₂.2) a₀₂ a₁₂ (A₀.2 .f .id a₀₀ a₁₀)
+`    (A₁.2 .f .id a₀₁ a₁₁))ʔ `isFibrant⁽ᵖ⁾ (sym (A₂.2) a₀₂ a₁₂) (A₀.2 .f .id a₀₀ a₁₀)
+`    (A₁.2 .f .id a₀₁ a₁₁)
+]
+
+def T (A : Type) (f : isFibrant A) : Type ≔ codata [
+| x .des.p : (a₀ : A.0) → (a₁ : A.1) → A.2 a₀ a₁ ]
+
+def isFibT (A : Type) (f : isFibrant A) : isFibrant (T A f) ≔ [
+| .trr.p ↦ x ↦ [
+  | .des.p ↦ a₀ a₁ ↦
+      let a₀₂ ≔ x.2 .des (f.20 .trl a₀) (f.21 .trl a₁) in
+      ¿(sym f.22) .id.1 ʔ]
+| .trl.p ↦ ¿ʔ
+| .liftr.p ↦ ¿ʔ
+| .liftl.p ↦ ¿ʔ
+| .id.p ↦ ¿ʔ] 
+
+def funΣ (A B : Type) (f : A → B) (P : A → Type) (Q : B → Type)
+  (g : (a : A) → (P a) → Q (f a))
+  : (Σ A P) → Σ B Q
+  ≔ x ↦ (fst ≔ f (x .fst), snd ≔ g (x .fst) (x .snd))
+
+def vsurj_Σ (A B : Type) (f : A → B) (fs : vsurj A B f) (P : A → Fib)
+  (Q : B → Fib) (R : (a : A) → Br Fib (P a) (Q (f a)))
+  : vsurj (Σ A (a ↦ P a .t)) (Σ B (b ↦ Q b .t))
+      (funΣ A B f (a ↦ P a .t) (b ↦ Q b .t) (a p ↦ R a .f .trr p))
+  ≔ [
+| .surj ↦
+    funΣ B A (fs .surj) (b ↦ Q b .t) (a ↦ P a .t)
+      (b q ↦
+       let g₁ : Q b .t → Q (f (fs .surj b)) .t
+         ≔ rel Q (fs .surjeq b) .f .trl in
+       let g₂ : Q (f (fs .surj b)) .t → P (fs .surj b) .t
+         ≔ R (fs .surj b) .f .trl in
+       g₂ (g₁ q))
+| .surjeq ↦ x ↦
+    let b ≔ x .fst in
+    let q ≔ x .snd in
+    (fst ≔ fs .surjeq b, snd ≔ ¿rel Q (fs .surjeq b) .f .liftl qʔ)
+| .id.p ↦ ¿ʔ]    
+
+def BrFibUnfolded (A₀ A₁ : Fib) : Type ≔ sig (
+  R : Br Type (A₀ .t) (A₁ .t),
+  Rf : (a₀ : A₀ .t) (a₁ : A₁ .t) → isFibrant (R a₀ a₁),
+  rest : BrFibRest A₀ A₁ R )
+
+`| x .id1 : (a₀ : A₀ .t) (a₁ : A₁ .t) → isFibrant (x .R a₀ a₁)
+
 def BrIsFib_eq (A₀ A₁ : Fib) : Br Fib A₀ A₁ ≅ BrFibUnfolded A₀ A₁ ≔ (
-  to ≔ x ↦ [
-  | .R ↦ x .t
-  | .trr1 ↦ x .f .trr
-  | .trr.p ↦ x.2 .f .trr.2
-  | .trl1 ↦ x .f .trl
-  | .trl.p ↦ x.2 .f .trl.2
-  | .liftr1 ↦ x .f .liftr
-  | .liftr.p ↦ x.2 .f .liftr.2
-  | .liftl1 ↦ x .f .liftl
-  | .liftl.p ↦ x.2 .f .liftl.2
-  | .id1 ↦ x .f .id
-  | .id.p ↦ x.2 .f .id.2],
+  to ≔ x ↦ (
+    x .t,
+    x .f .id,
+    [ .trr1 ↦ x .f .trr
+    | .trr.p ↦ x.2 .f .trr.2
+    | .trl1 ↦ x .f .trl
+    | .trl.p ↦ x.2 .f .trl.2
+    | .liftr1 ↦ x .f .liftr
+    | .liftr.p ↦ x.2 .f .liftr.2
+    | .liftl1 ↦ x .f .liftl
+    | .liftl.p ↦ x.2 .f .liftl.2
+    | .id.p ↦ x.2 .f .id.2]),
   fro ≔ x ↦ (
     t ≔ x .R,
     f ≔ [
-    | .trr.p ⤇ x.2 .trr
-    | .trr.1 ⤇ x .trr1
-    | .trl.p ⤇ x.2 .trl
-    | .trl.1 ⤇ x .trl1
-    | .liftr.p ⤇ x.2 .liftr
-    | .liftr.1 ⤇ x .liftr1
-    | .liftl.p ⤇ x.2 .liftl
-    | .liftl.1 ⤇ x .liftl1
-    | .id.p ⤇ x.2 .id
-    | .id.1 ⤇ x .id1]),
+    | .trr.p ⤇ x.2 .rest .trr
+    | .trr.1 ⤇ x .rest .trr1
+    | .trl.p ⤇ x.2 .rest .trl
+    | .trl.1 ⤇ x .rest .trl1
+    | .liftr.p ⤇ x.2 .rest .liftr
+    | .liftr.1 ⤇ x .rest .liftr1
+    | .liftl.p ⤇ x.2 .rest .liftl
+    | .liftl.1 ⤇ x .rest .liftl1
+    | .id.p ⤇ x.2 .rest .id
+    | .id.1 ⤇ x .Rf]),
   fro_to ≔ ¿ʔ,
   to_fro ≔ ¿ʔ,
   to_fro_to ≔ ¿ʔ)
@@ -371,6 +446,11 @@ section gen𝕗Fib ≔
         →⁽ᵖ⁾ Σ⁽ᵖ⁾ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R ↦ P₀ R .t} {R ↦ P₁ R .t}
                (R ⤇ P₂ R.2 .t) (f₀ 𝑥₀) (f₁ 𝑥₁)
       ≔ u₂ .f in
+    let g
+      : (X₂ x₀ x₁)
+        → Σ⁽ᵖ⁾ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R ↦ P₀ R .t} {R ↦ P₁ R .t} (R ⤇ P₂ R.2 .t)
+            (f₀ x₀) (f₁ x₁)
+      ≔ x₂ ↦ f₂ {x₀} {x₁} x₂ in
     let v₀ : vsurj X₀ (Σ (∂₀ .t → Fib) (R ↦ P₀ R .t)) f₀ ≔ u₀ .v in
     let v₁ : vsurj X₁ (Σ (∂₁ .t → Fib) (R ↦ P₁ R .t)) f₁ ≔ u₁ .v in
     let v₂
