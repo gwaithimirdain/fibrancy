@@ -186,6 +186,13 @@ def comp (A B C : Fib) (e : Br Fib A B) (e' : Br Fib B C) : Br Fib A C ≔
     in
   univalence_vv A C (a ↦ f' (f a)) (comp_Eqv A B C f fe f' fe')
 
+def comp1 (∂ : Fib) (P : (∂ .t → Fib) → Fib)
+  (Rp Rp' Rp'' : Σ (∂ .t → Fib) (R ↦ P R .t))
+  (e : Br (Σ (∂ .t → Fib) (R ↦ P R .t)) Rp Rp')
+  (e' : Br (Σ (∂ .t → Fib) (R ↦ P R .t)) Rp' Rp'')
+  : Br (Σ (∂ .t → Fib) (R ↦ P R .t)) Rp Rp'
+  ≔ (fst ≔ {y₀} {y₁} y₂ ↦ ¿ʔ, snd ≔ ¿ʔ)
+
 def inv (A B : Fib) (e : Br Fib A B) : Br Fib B A ≔ ¿ʔ
 
 def help (∂₀ : Fib) (∂₁ : Fib) (∂₂ : Fib⁽ᵖ⁾ ∂₀ ∂₁) (R₀ : ∂₀ .t → Fib)
@@ -324,13 +331,18 @@ section gen𝕗Fib ≔
       ≔ v₁ .surjeq (R₁, p₁) in
     let res
       : rel Σ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R ↦ P₀ R .t} {R ↦ P₁ R .t} (R ⤇ P₂ R.2 .t)
-          (R₀, p₀) (f₁ (v₁ .surj (R₁, p₁))) ≔ (
+          (R₀, p₀) (f₁ (v₁ .surj (R₁, p₁)))
+      ≔ ¿f₀ x₀ .sndʔ in
+    v₂ .id x₀ (v₁ .surj (R₁, p₁)) .surj res
+
+{`
+(
       fst ≔ {y₀} {y₁} y₂ ↦
         comp (R₀ y₀) (R₁ y₁) (f₁ (v₁ .surj (R₁, p₁)) .fst y₁) (Rp₂ .fst y₂)
           (inv (f₁ (v₁ .surj (R₁, p₁)) .fst y₁) (R₁ y₁)
              (Rp₁₂ .fst (rel y₁))),
-      snd ≔ ¿ʔ) in
-    v₂ .id x₀ (v₁ .surj (R₁, p₁)) .surj res
+      snd ≔ ¿ʔ)
+`}
 
   def id (X₀ X₁ : Type) (X₂ : Br Type X₀ X₁) (u₀ : F X₀) (u₁ : F X₁)
     (u₂ : Br F X₂ u₀ u₁) (x₀ : X₀) (x₁ : X₁)
@@ -352,6 +364,8 @@ section gen𝕗Fib ≔
     let f₁ : X₁ → Σ (∂₁ .t → Fib) (R ↦ P₁ R .t) ≔ u₁ .f in
     let R₀ : ∂₀ .t → Fib ≔ f₀ x₀ .fst in
     let R₁ : ∂₁ .t → Fib ≔ f₁ x₁ .fst in
+    let p₀ : P₀ R₀ .t ≔ f₀ x₀ .snd in
+    let p₁ : P₁ R₁ .t ≔ f₁ x₁ .snd in
     let f₂
       : {𝑥₀ : X₀} {𝑥₁ : X₁} (𝑥₂ : X₂ 𝑥₀ 𝑥₁)
         →⁽ᵖ⁾ Σ⁽ᵖ⁾ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R ↦ P₀ R .t} {R ↦ P₁ R .t}
