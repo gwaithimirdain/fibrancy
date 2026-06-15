@@ -88,47 +88,111 @@ def unliftl (A₀ A₁ : Fib) (A₂ : Br Fib A₀ A₁) (a₀ : A₀ .t) (a₁ :
 def to𝕗Rel (A₀ A₁ : Fib) (A₂ : Br Fib A₀ A₁) : A₀ .t → A₁ .t → Fib
   ≔ a₀ a₁ ↦ (t ≔ A₂ .t a₀ a₁, f ≔ A₂ .f .id a₀ a₁)
 
-def comp_vv (A B C : Fib) (f : A .t → B .t)
-  (fe : (b : B .t) → isContr (Σ𝕗 A (a ↦ Id𝕗 B (f a) b))) (g : B .t → C .t)
-  (ge : (c : C .t) → isContr (Σ𝕗 B (b ↦ Id𝕗 C (g b) c)))
-  : (c : C .t) → isContr (Σ𝕗 A (a ↦ Id𝕗 C (g (f a)) c))
+def isEquiv (A B : Fib) (f : A .t → B .t) : Type
+  ≔ (b : B .t) → isContr (Σ𝕗 A (a ↦ Id𝕗 B (f a) b))
+
+` TODO: rename
+def apply (A B C : Fib) (f : A .t → B .t) (fe : isEquiv A B f)
+  (g : B .t → C .t) (c : C .t)
+  : Σ (B .t) (b ↦ Br (C .t) (g b) c) → Σ (A .t) (a ↦ Br (C .t) (g (f a)) c)
+  ≔ be ↦
+  let b ≔ be .fst in
+  let e ≔ be .snd in
+  (fst ≔ fe b .center .fst,
+   snd ≔
+     concat C (g (f (fe (be .fst) .center .fst))) (g (be .fst)) c
+       (rel g (fe b .center .snd)) e)
+
+` TODO: rename
+def eee (A : Fib) (B C : A .t → Fib) (f : (a : A .t) → B a .t → C a .t)
+  (a₀ a₁ : A .t) (b₀ : B a₀ .t) (b₁ : B a₁ .t)
+  (e : Id𝕗 (Σ𝕗 A B) (a₀, b₀) (a₁, b₁) .t)
+  : Id𝕗 (Σ𝕗 A C) (a₀, f a₀ b₀) (a₁, f a₁ b₁) .t
+  ≔ (fst ≔ e .fst, snd ≔ rel f (e .fst) (e .snd))
+
+def concat_1p' (A : Fib) (x y : A .t) (p : Br (A .t) x y)
+  : Br (Br (A .t) x y) p (concat A x x y (rel x) p)
+  ≔ inverse (Id𝕗 A x y) (concat A x x y (rel x) p) p (concat_1p A x y p)
+
+def comp_Eqv (A B C : Fib) (f : A .t → B .t) (fe : isEquiv A B f)
+  (g : B .t → C .t) (ge : isEquiv B C g)
+  : isEquiv A C (a ↦ g (f a))
   ≔ c ↦ (
-  center ≔ (
-    fst ≔ fe (ge c .center .fst) .center .fst,
-    snd ≔
-      concat C (g (f (fe (ge c .center .fst) .center .fst)))
-        (g (ge c .center .fst)) c
-        (rel g (fe (ge c .center .fst) .center .snd)) (ge c .center .snd)),
-  contract ≔ ae ↦ ¿ʔ)
+  center ≔ apply A B C f fe g c (ge c .center),
+  contract ≔ ae ↦
+    let a ≔ ae .fst in
+    let e ≔ ae .snd in
+    concat (Σ𝕗 A (a ↦ Id𝕗 C (g (f a)) c)) (a, e)
+      (apply A B C f fe g c (f a, e)) (apply A B C f fe g c (ge c .center))
+      (concat (Σ𝕗 A (a' ↦ Id𝕗 C (g (f a')) c)) (a, e)
+         (a, concat C (g (f a)) (g (f a)) c (rel (g (f a))) e)
+         (apply A B C f fe g c (f a, e))
+         (fst ≔ rel a, snd ≔ concat_1p' C (g (f a)) c e)
+         (eee A (a' ↦ Id𝕗 B (f a') (f a)) (a' ↦ Id𝕗 C (g (f a')) c)
+            (a' z ↦ concat C (g (f a')) (g (f a)) c (rel g z) e) a
+            (fe (f (ae .fst)) .center .fst) (rel f (rel a))
+            (fe (f (ae .fst)) .center .snd)
+            (fe (f a) .contract (a, rel (f a)))))
+      (rel (apply A B C f fe g c) (ge c .contract (f a, e))))
 
-{`
-def univalence_vv (A B : Fib) (f : A .t → B .t)
-  (fe : (b : B .t) → isContr (Σ𝕗 A (a ↦ Id𝕗 B (f a) b)))
-  : Br Fib A B
-`}
+def is11_of_bisim (A B : Fib) (R : A .t → B .t → Fib) (bs : isBisim A B R)
+  : is11 A B R
+  ≔ (
+  contrr ≔ a ↦ (
+    center ≔ (fst ≔ bs .trr a, snd ≔ bs .liftr a),
+    contract ≔ be ↦
+      let b ≔ be .fst in
+      let e ≔ be .snd in
+      (fst ≔ rel bs .id a b e a (bs .trr a) (bs .liftr a) .trr (rel a),
+       snd ≔ rel bs .id a b e a (bs .trr a) (bs .liftr a) .liftr (rel a))),
+  contrl ≔ b ↦ (
+    center ≔ (fst ≔ bs .trl b, snd ≔ bs .liftl b),
+    contract ≔ ae ↦
+      let a ≔ ae .fst in
+      let e ≔ ae .snd in
+      (fst ≔ rel bs .id a b e (bs .trl b) b (bs .liftl b) .trl (rel b),
+       snd ≔ rel bs .id a b e (bs .trl b) b (bs .liftl b) .liftl (rel b))))
 
-def comp (A B C : Fib) (e : Br Fib A B) (f : Br Fib B C) : Br Fib A C
-  ≔ ¿ʔ
+def isEqv_of_is11 (A B : Fib) (R : A .t → B .t → Fib) (re : is11 A B R)
+  : Σ (A .t → B .t) (f ↦ isEquiv A B f)
+  ≔ (
+  fst ≔ a ↦ re .contrr a .center .fst,
+  snd ≔ b ↦ (
+    center ≔ (
+      fst ≔ re .contrl b .center .fst,
+      snd ≔
+        inverse B b (re .contrr (re .contrl b .center .fst) .center .fst)
+          (re
+           .contrr (re .contrl b .center .fst)
+           .contract (fst ≔ b, snd ≔ re .contrl b .center .snd)
+           .fst)),
+    contract ≔ ae ↦
+      let a ≔ ae .fst in
+      let e ≔ ae .snd in
+      ¿ʔ))
+
+def comp (A B C : Fib) (e : Br Fib A B) (e' : Br Fib B C) : Br Fib A C ≔
+  let R : A .t → B .t → Fib ≔ a b ↦ Idd𝕗 A B e a b in
+  let f : A .t → B .t
+    ≔ isEqv_of_is11 A B R (is11_of_bisim A B R (bisim_of_Id A B e)) .fst in
+  let fe : isEquiv A B f
+    ≔ isEqv_of_is11 A B R (is11_of_bisim A B R (bisim_of_Id A B e)) .snd in
+  let R' : B .t → C .t → Fib ≔ b c ↦ Idd𝕗 B C e' b c in
+  let f' : B .t → C .t
+    ≔ isEqv_of_is11 B C R' (is11_of_bisim B C R' (bisim_of_Id B C e')) .fst
+    in
+  let fe' : isEquiv B C f'
+    ≔ isEqv_of_is11 B C R' (is11_of_bisim B C R' (bisim_of_Id B C e')) .snd
+    in
+  univalence_vv A C (a ↦ f' (f a)) (comp_Eqv A B C f fe f' fe')
+
+def inv (A B : Fib) (e : Br Fib A B) : Br Fib B A ≔ ¿ʔ
 
 def help (∂₀ : Fib) (∂₁ : Fib) (∂₂ : Fib⁽ᵖ⁾ ∂₀ ∂₁) (R₀ : ∂₀ .t → Fib)
   (R₁ R₁' : ∂₁ .t → Fib) (R₂ : (∂₂ .t ⇒ Fib⁽ᵖ⁾) R₀ R₁)
   (R₁₂ : Br (∂₁ .t → Fib) R₁ R₁')
   : (∂₂ .t ⇒ Fib⁽ᵖ⁾) R₀ R₁'
   ≔ x ⤇ comp (R₀ x.0) (R₁ x.1) (R₁' x.1) (R₂ x.2) (R₁₂ (rel x.1))
-
-def check (A₀ A₁ : Fib) : Br Fib A₀ A₁ ≔ (
-  t ≔ ¿ʔ,
-  f ≔ [
-  | .trr.p ⤇ ¿ʔ
-  | .trr.1 ⤇ ¿ʔ
-  | .trl.p ⤇ ¿ʔ
-  | .trl.1 ⤇ ¿ʔ
-  | .liftr.p ⤇ ¿ʔ
-  | .liftr.1 ⤇ ¿ʔ
-  | .liftl.p ⤇ ¿ʔ
-  | .liftl.1 ⤇ ¿ʔ
-  | .id.p ⤇ ¿ʔ
-  | .id.1 ⤇ ¿ʔ])
 
 def BrFibUnfolded (A₀ A₁ : Fib) : Type ≔ codata [
 | x .R : Br Type (A₀ .t) (A₁ .t)
@@ -186,7 +250,6 @@ def BrIsFib_eq (A₀ A₁ : Fib) : Br Fib A₀ A₁ ≅ BrFibUnfolded A₀ A₁ 
   fro_to ≔ ¿ʔ,
   to_fro ≔ ¿ʔ,
   to_fro_to ≔ ¿ʔ)
-
 
 section gen𝕗Fib ≔
   def F (X : Type) : Type ≔ sig (
@@ -261,8 +324,12 @@ section gen𝕗Fib ≔
       ≔ v₁ .surjeq (R₁, p₁) in
     let res
       : rel Σ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R ↦ P₀ R .t} {R ↦ P₁ R .t} (R ⤇ P₂ R.2 .t)
-          (R₀, p₀) (f₁ (v₁ .surj (R₁, p₁)))
-      ≔ ¿ʔ in
+          (R₀, p₀) (f₁ (v₁ .surj (R₁, p₁))) ≔ (
+      fst ≔ {y₀} {y₁} y₂ ↦
+        comp (R₀ y₀) (R₁ y₁) (f₁ (v₁ .surj (R₁, p₁)) .fst y₁) (Rp₂ .fst y₂)
+          (inv (f₁ (v₁ .surj (R₁, p₁)) .fst y₁) (R₁ y₁)
+             (Rp₁₂ .fst (rel y₁))),
+      snd ≔ ¿ʔ) in
     v₂ .id x₀ (v₁ .surj (R₁, p₁)) .surj res
 
   def id (X₀ X₁ : Type) (X₂ : Br Type X₀ X₁) (u₀ : F X₀) (u₁ : F X₁)
@@ -283,6 +350,8 @@ section gen𝕗Fib ≔
       ≔ u₂ .P in
     let f₀ : X₀ → Σ (∂₀ .t → Fib) (R ↦ P₀ R .t) ≔ u₀ .f in
     let f₁ : X₁ → Σ (∂₁ .t → Fib) (R ↦ P₁ R .t) ≔ u₁ .f in
+    let R₀ : ∂₀ .t → Fib ≔ f₀ x₀ .fst in
+    let R₁ : ∂₁ .t → Fib ≔ f₁ x₁ .fst in
     let f₂
       : {𝑥₀ : X₀} {𝑥₁ : X₁} (𝑥₂ : X₂ 𝑥₀ 𝑥₁)
         →⁽ᵖ⁾ Σ⁽ᵖ⁾ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R ↦ P₀ R .t} {R ↦ P₁ R .t}
@@ -300,59 +369,3 @@ section gen𝕗Fib ≔
      f ≔ ¿ʔ,
      v ≔ ¿ʔ)
 end
-
-`let f₂' : X₂ x₀ x₁ → 
-
-def f (A₀ A₁ : Type)(A₂ : Br Type A₀ A₁)(f₀ : isFibrant A₀)(f₁ : isFibrant A₁) :
-  Br isFibrant A₂ f₀ f₁ ≔ [ .trr.p ⤇ ¿ʔ
-| .trr.1 ⤇ ¿ʔ
-| .trl.p ⤇ ¿ʔ
-| .trl.1 ⤇ ¿ʔ
-| .liftr.p ⤇ ¿ʔ
-| .liftr.1 ⤇ ¿ʔ
-| .liftl.p ⤇ ¿ʔ
-| .liftl.1 ⤇ ¿ʔ
-| .id.p ⤇ ¿ʔ
-| .id.1 ⤇ ¿ʔ]
-
-
-
-
-def BrIsFibUnfolded (A₀ A₁ : Type) (A₂ : Type⁽ᵖ⁾ A₀ A₁) (f₀ : isFibrant A₀)
-  (f₁ : isFibrant A₁)
-  : Type
-  ≔ codata [
-| f₂ .trr : A₀ → A₁
-| f₂ .trr'.p
-  : {𝑥₀ : A₀.0} {𝑥₁ : A₁.0} (𝑥₂ : A₂.0 𝑥₀ 𝑥₁)
-    →⁽ᵖ⁾ A₂.1 (f₀.2 .trr 𝑥₀) (f₁.2 .trr 𝑥₁)
-| f₂ .trl : A₁ → A₀
-| f₂ .trl'.p
-  : {𝑥₀ : A₀.1} {𝑥₁ : A₁.1} (𝑥₂ : A₂.1 𝑥₀ 𝑥₁)
-    →⁽ᵖ⁾ A₂.0 (f₀.2 .trl 𝑥₀) (f₁.2 .trl 𝑥₁)
-| f₂ .liftr : (a₀ : A₀) → A₂ a₀ (f₂ .trr a₀)
-| f₂ .liftr'.p : ¿ʔ
-`  {a₀₀ : A₀.0} {a₀₁ : A₁.0} (a₀₂ : A₂.0 a₀₀ a₀₁)
-`  →⁽ᵖ⁾ sym A₂.2 a₀₂ (sym ? .trr.1 a₀₂) (f₀.2 .liftr a₀₀) (f₁.2 .liftr a₀₁)
-| f₂ .liftl : (a₁ : A₁) → A₂ (f₂ .trl a₁) a₁
-| f₂ .id : (a₀ : A₀) (a₁ : A₁) → isFibrant (A₂ a₀ a₁) ]
-` xxx
-` 
-def unfold (A₀ A₁ : Type) (A₂ : Type⁽ᵖ⁾ A₀ A₁) (f₀ : isFibrant A₀)
-  (f₁ : isFibrant A₁)
-  : Br isFibrant A₂ f₀ f₁ ≅ BrIsFibUnfolded A₀ A₁ A₂ f₀ f₁
-  ≔ adjointify (Br isFibrant A₂ f₀ f₁) (BrIsFibUnfolded A₀ A₁ A₂ f₀ f₁)
-      (f₂ ↦ ¿ʔ)
-      (f₂ ↦
-       [ .trr.p ⤇ f₂ .trr'
-       | .trr.1 ⤇ f₂ .trr
-       | .trl.p ⤇ f₂ .trl'
-       | .trl.1 ⤇ f₂ .trl
-       | .liftr.p ⤇ ¿ʔ
-       | .liftr.1 ⤇ f₂ .liftr
-       | .liftl.p ⤇ ¿ʔ
-       | .liftl.1 ⤇ ¿ʔ
-       | .id.p ⤇ ¿ʔ
-       | .id.1 ⤇ f₂ .id]) ¿ʔ ¿ʔ
-def to11 (A₀ A₁ : Fib)(A₂ : Br Fib A₀ A₁) : 
-  ≔ ¿ʔ
