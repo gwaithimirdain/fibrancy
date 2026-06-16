@@ -40,3 +40,34 @@ def isFibHasConn (A : Type) : hasConn (isFibrant A) ≔ [
     fibHasConn (isFibrant⁽ᵖ⁾ A.2 f₀ f₁) (fiblemma2 A.0 f₀ A.1 f₁ A.2 f₂)]
 
 
+section parametrized ≔
+
+  {` We can also consider higher destructors whose typse depend on the parameters, but they have to depend on a degenerated version of the parameters.  In this case, however, it seems that we require the *parameter* to be fibrant as well. `}
+  axiom Γ : Type
+  axiom 𝕔Γ : hasConn Γ
+  axiom A (x₀ x₁ : Γ) (x₂ : Br Γ x₀ x₁) : Type
+  axiom 𝕗A (x₀ x₁ : Γ) (x₂ : Br Γ x₀ x₁) : isFibrant (A x₀ x₁ x₂)
+
+  {` For simplicity, we leave off any lower destructors. `}
+  def √A (x : Γ) : Type ≔ codata [ a .root.p : A x.0 x.1 x.2 ]
+
+  def 𝕗√A (x : Γ) : isFibrant (√A x) ≔ [
+  | .trr.p ↦ a₀ ↦ [
+    | .root.p ↦ rel 𝕗A x.20 x.21 (sym x.22) .trr (a₀.2 .root)]
+  | .trl.p ↦ a₁ ↦ [
+    | .root.p ↦ rel 𝕗A x.20 x.21 (sym x.22) .trl (a₁.2 .root)]
+  | .liftr.p ↦ a₀ ↦ [
+    | .root.p ↦ rel 𝕗A x.20 x.21 (sym x.22) .liftr (a₀.2 .root)
+    | .root.1 ↦
+        rel 𝕗A (rel x.0) x.2 (𝕔Γ .lconn x.0 x.1 x.2) .trr (rel a₀ .root)
+    {` Here we need a connection structure on Γ, to get a connection square. `}
+    ]
+  | .liftl.p ↦ a₁ ↦ [
+    | .root.p ↦ rel 𝕗A x.20 x.21 (sym x.22) .liftl (a₁.2 .root)
+    | .root.1 ↦
+        rel 𝕗A x.2 (rel x.1) (𝕔Γ .rconn x.0 x.1 x.2) .trl (rel a₁ .root)
+    ]
+  {` Again, we can't do the recursive case. `}
+  | .id.p ↦ a₀ a₁ ↦ ¿ʔ]
+
+end
