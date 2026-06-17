@@ -74,10 +74,10 @@ section eq ≔
     : eq (eq A a0 a1) a01 a01'
     ≔ match a12 [ rfl. ↦ a02 ]
 
-def ap2 (A B C : Type) (f : A → B → C) (a0 a1 : A) (a2 : eq A a0 a1)
-  (b0 b1 : B) (b2 : eq B b0 b1)
-  : eq C (f a0 b0) (f a1 b1)
-  ≔ match a2, b2 [ rfl., rfl. ↦ rfl. ]
+  def ap2 (A B C : Type) (f : A → B → C) (a0 a1 : A) (a2 : eq A a0 a1)
+    (b0 b1 : B) (b2 : eq B b0 b1)
+    : eq C (f a0 b0) (f a1 b1)
+    ≔ match a2, b2 [ rfl., rfl. ↦ rfl. ]
 
 end
 
@@ -357,3 +357,35 @@ def adjointify (A B : Type) (f : A → B) (g : B → A)
              (eq.ap (eq A (gfgf a) (gf a)) (eq B (fgfgf a) (fgf a))
                 (ap_f (gfgf a) (gf a)) (ap_gf (gf a) a (η a)) (η (gf a))
                 (selfnat A gf η a)))))
+
+def comp_eqv (A B C : Type) (f : A ≅ B) (g : B ≅ C) : A ≅ C
+  ≔ adjointify A C (a ↦ g .to (f .to a)) (c ↦ f .fro (g .fro c))
+      (a ↦
+       eq.cat A (f .fro (g .fro (g .to (f .to a)))) (f .fro (f .to a)) a
+         (eq.ap B A (f .fro) (g .fro (g .to (f .to a))) (f .to a)
+            (g .fro_to (f .to a))) (f .fro_to a))
+      (c ↦
+       eq.cat C (g .to (f .to (f .fro (g .fro c)))) (g .to (g .fro c)) c
+         (eq.ap B C (g .to) (f .to (f .fro (g .fro c))) (g .fro c)
+            (f .to_fro (g .fro c))) (g .to_fro c))
+
+def eqv_trr2 (A : Type) (B : Type) (P : A → B → Type) (a0 a1 : A)
+  (a2 : eq A a0 a1) (b0 b1 : B) (b2 : eq B b0 b1)
+  : P a0 b0 ≅ P a1 b1
+  ≔ adjointify (P a0 b0) (P a1 b1) (eq.trr2 A B P a0 a1 a2 b0 b1 b2)
+      (eq.trl2 A B P a0 a1 a2 b0 b1 b2)
+      (_ ↦ match a2, b2 [ rfl., rfl. ↦ rfl. ])
+      (_ ↦ match a2, b2 [ rfl., rfl. ↦ rfl. ])
+
+def eqv_transpose (A0 B0 : Type) (f0 : A0 → B0) (A1 B1 : Type)
+  (f1 : A1 → B1) (eA : A0 ≅ A1) (eB : B0 ≅ B1)
+  (ef : (a0 : A0) → eq.eq B1 (eB .to (f0 a0)) (f1 (eA .to a0))) (a1 : A1)
+  : eq.eq B0 (f0 (eA .fro a1)) (eB .fro (f1 a1))
+  ≔ eq.cat3 B0 (f0 (eA .fro a1)) (eB .fro (eB .to (f0 (eA .fro a1))))
+      (eB .fro (f1 (eA .to (eA .fro a1)))) (eB .fro (f1 a1))
+      (eq.inv B0 (eB .fro (eB .to (f0 (eA .fro a1)))) (f0 (eA .fro a1))
+         (eB .fro_to (f0 (eA .fro a1))))
+      (eq.ap B1 B0 (eB .fro) (eB .to (f0 (eA .fro a1)))
+         (f1 (eA .to (eA .fro a1))) (ef (eA .fro a1)))
+      (eq.ap A1 B0 (x ↦ eB .fro (f1 x)) (eA .to (eA .fro a1)) a1
+         (eA .to_fro a1))

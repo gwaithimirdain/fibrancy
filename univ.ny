@@ -7,6 +7,7 @@ import "fibrant_types"
 import "homotopy"
 import "univalence"
 
+` copy and paste from vsurj.ny
 def vsurj (A B : Type) (f : A → B) : Type ≔ codata [
 | s .surj : B → A
 | s .surjeq : (b : B) → Br B (f (s .surj b)) b
@@ -14,39 +15,7 @@ def vsurj (A B : Type) (f : A → B) : Type ≔ codata [
   : (a0 : A.0) (a1 : A.1)
     → vsurj (A.2 a0 a1) (B.2 (f.0 a0) (f.1 a1)) (a2 ↦ f.2 a2) ]
 
-def comp_eqv (A B C : Type) (f : A ≅ B) (g : B ≅ C) : A ≅ C
-  ≔ adjointify A C (a ↦ g .to (f .to a)) (c ↦ f .fro (g .fro c))
-      (a ↦
-       eq.cat A (f .fro (g .fro (g .to (f .to a)))) (f .fro (f .to a)) a
-         (eq.ap B A (f .fro) (g .fro (g .to (f .to a))) (f .to a)
-            (g .fro_to (f .to a))) (f .fro_to a))
-      (c ↦
-       eq.cat C (g .to (f .to (f .fro (g .fro c)))) (g .to (g .fro c)) c
-         (eq.ap B C (g .to) (f .to (f .fro (g .fro c))) (g .fro c)
-            (f .to_fro (g .fro c))) (g .to_fro c))
-
-def eqv_trr2 (A : Type) (B : Type) (P : A → B → Type) (a0 a1 : A)
-  (a2 : eq A a0 a1) (b0 b1 : B) (b2 : eq B b0 b1)
-  : P a0 b0 ≅ P a1 b1
-  ≔ adjointify (P a0 b0) (P a1 b1) (eq.trr2 A B P a0 a1 a2 b0 b1 b2)
-      (eq.trl2 A B P a0 a1 a2 b0 b1 b2)
-      (_ ↦ match a2, b2 [ rfl., rfl. ↦ rfl. ])
-      (_ ↦ match a2, b2 [ rfl., rfl. ↦ rfl. ])
-
-def eqv_transpose (A0 B0 : Type) (f0 : A0 → B0) (A1 B1 : Type)
-  (f1 : A1 → B1) (eA : A0 ≅ A1) (eB : B0 ≅ B1)
-  (ef : (a0 : A0) → eq.eq B1 (eB .to (f0 a0)) (f1 (eA .to a0))) (a1 : A1)
-  : eq.eq B0 (f0 (eA .fro a1)) (eB .fro (f1 a1))
-  ≔ eq.cat3 B0 (f0 (eA .fro a1)) (eB .fro (eB .to (f0 (eA .fro a1))))
-      (eB .fro (f1 (eA .to (eA .fro a1)))) (eB .fro (f1 a1))
-      (eq.inv B0 (eB .fro (eB .to (f0 (eA .fro a1)))) (f0 (eA .fro a1))
-         (eB .fro_to (f0 (eA .fro a1))))
-      (eq.ap B1 B0 (eB .fro) (eB .to (f0 (eA .fro a1)))
-         (f1 (eA .to (eA .fro a1))) (ef (eA .fro a1)))
-      (eq.ap A1 B0 (x ↦ eB .fro (f1 x)) (eA .to (eA .fro a1)) a1
-         (eA .to_fro a1))
-
-
+` copy and paste from vsurj.ny
 def vsurj_eqv (A0 B0 : Type) (f0 : A0 → B0) (A1 B1 : Type) (f1 : A1 → B1)
   (eA : A0 ≅ A1) (eB : B0 ≅ B1)
   (ef : (x : A0) → eq.eq B1 (eB .to (f0 x)) (f1 (eA .to x)))

@@ -14,38 +14,6 @@ def mapΣ (A B : Type) (f : A → B) (Aᵈ : A → Type) (Bᵈ : B → Type)
   : Σ A Aᵈ → Σ B Bᵈ
   ≔ u ↦ (f (u .fst), fᵈ (u .fst) (u .snd))
 
-def comp_eqv (A B C : Type) (f : A ≅ B) (g : B ≅ C) : A ≅ C
-  ≔ adjointify A C (a ↦ g .to (f .to a)) (c ↦ f .fro (g .fro c))
-      (a ↦
-       eq.cat A (f .fro (g .fro (g .to (f .to a)))) (f .fro (f .to a)) a
-         (eq.ap B A (f .fro) (g .fro (g .to (f .to a))) (f .to a)
-            (g .fro_to (f .to a))) (f .fro_to a))
-      (c ↦
-       eq.cat C (g .to (f .to (f .fro (g .fro c)))) (g .to (g .fro c)) c
-         (eq.ap B C (g .to) (f .to (f .fro (g .fro c))) (g .fro c)
-            (f .to_fro (g .fro c))) (g .to_fro c))
-
-def eqv_trr2 (A : Type) (B : Type) (P : A → B → Type) (a0 a1 : A)
-  (a2 : eq A a0 a1) (b0 b1 : B) (b2 : eq B b0 b1)
-  : P a0 b0 ≅ P a1 b1
-  ≔ adjointify (P a0 b0) (P a1 b1) (eq.trr2 A B P a0 a1 a2 b0 b1 b2)
-      (eq.trl2 A B P a0 a1 a2 b0 b1 b2)
-      (_ ↦ match a2, b2 [ rfl., rfl. ↦ rfl. ])
-      (_ ↦ match a2, b2 [ rfl., rfl. ↦ rfl. ])
-
-def eqv_transpose (A0 B0 : Type) (f0 : A0 → B0) (A1 B1 : Type)
-  (f1 : A1 → B1) (eA : A0 ≅ A1) (eB : B0 ≅ B1)
-  (ef : (a0 : A0) → eq.eq B1 (eB .to (f0 a0)) (f1 (eA .to a0))) (a1 : A1)
-  : eq.eq B0 (f0 (eA .fro a1)) (eB .fro (f1 a1))
-  ≔ eq.cat3 B0 (f0 (eA .fro a1)) (eB .fro (eB .to (f0 (eA .fro a1))))
-      (eB .fro (f1 (eA .to (eA .fro a1)))) (eB .fro (f1 a1))
-      (eq.inv B0 (eB .fro (eB .to (f0 (eA .fro a1)))) (f0 (eA .fro a1))
-         (eB .fro_to (f0 (eA .fro a1))))
-      (eq.ap B1 B0 (eB .fro) (eB .to (f0 (eA .fro a1)))
-         (f1 (eA .to (eA .fro a1))) (ef (eA .fro a1)))
-      (eq.ap A1 B0 (x ↦ eB .fro (f1 x)) (eA .to (eA .fro a1)) a1
-         (eA .to_fro a1))
-
 def Id_eql (A0 A1 : Type) (A2 : Br Type A0 A1) (a00 : A0) (a01 : A1)
   (a02 : A2 a00 a01) (a10 : A0) (a11 : A1) (a12 : A2 a10 a11)
   (a20 : eq A0 a00 a10) (a21 : eq A1 a01 a11)
@@ -53,17 +21,6 @@ def Id_eql (A0 A1 : Type) (A2 : Br Type A0 A1) (a00 : A0) (a01 : A1)
   : eq (A2 a00 a01) a02
       (eq.trl2 A0 A1 (x y ↦ A2 x y) a00 a10 a20 a01 a11 a21 a12)
   ≔ match a22 [ rfl. ⤇ rfl. ]
-
-def Gel2 (A00 A01 : Type) (A02 : Br Type A00 A01) (A10 A11 : Type)
-  (A12 : Br Type A10 A11) (A20 : Br Type A00 A10) (A21 : Br Type A01 A11)
-  (A22 : (a00 : A00) (a01 : A01) (a02 : A02 a00 a01) (a10 : A10)
-         (a11 : A11) (a12 : A12 a10 a11) (a20 : A20 a00 a10)
-         (a21 : A21 a01 a11)
-         → Type)
-  : Type⁽ᵖᵖ⁾ A02 A12 A20 A21
-  ≔ codata [
-| a .ungel : A22 a.00 a.01 a.02 a.10 a.11 a.12 a.20 a.21 ]
-
 
 {` Very surjective functions `}
 

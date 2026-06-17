@@ -68,8 +68,8 @@ notation(2) A "×𝕗" B ≔ prod𝕗 A B
 def Σ (A : Type) (B : A → Type) : Type ≔ sig ( fst : A, snd : B fst )
 
 def id_Σ_iso (A0 : Type) (A1 : Type) (A2 : Br Type A0 A1) (B0 : A0 → Type)
-  (B1 : A1 → Type) (B2 : (A2 ⇒ rel Type) B0 B1)
-  (a0 : A0) (a1 : A1) (b0 : B0 a0) (b1 : B1 a1)
+  (B1 : A1 → Type) (B2 : (A2 ⇒ rel Type) B0 B1) (a0 : A0) (a1 : A1)
+  (b0 : B0 a0) (b1 : B1 a1)
   : Σ (A2 a0 a1) (a2 ↦ B2 a2 b0 b1) ≅ Br Σ A2 B2 (a0, b0) (a1, b1)
   ≔ (
   to ≔ u ↦ (u .fst, u .snd),
@@ -110,7 +110,7 @@ def Σ𝕗 (A : Fib) (B : A .t → Fib) : Fib ≔ (
 
 {` Π-types `}
 
-def Π (A : Type) (B : A → Type) : Type := (x : A) → B x
+def Π (A : Type) (B : A → Type) : Type ≔ (x : A) → B x
 
 def id_Π_iso (A0 : Type) (A1 : Type) (A2 : Br Type A0 A1) (B0 : A0 → Type)
   (B1 : A1 → Type)
@@ -188,6 +188,16 @@ def 𝕗Gel (A B : Type) (R : A → B → Type)
   (𝕗R : (a : A) (b : B) → isFibrant (R a b)) (a : A) (b : B)
   : isFibrant (Gel A B R a b)
   ≔ 𝕗eqv (R a b) (Gel A B R a b) (Gel_iso A B R a b) (𝕗R a b)
+
+def Gel2 (A00 A01 : Type) (A02 : Br Type A00 A01) (A10 A11 : Type)
+  (A12 : Br Type A10 A11) (A20 : Br Type A00 A10) (A21 : Br Type A01 A11)
+  (A22 : (a00 : A00) (a01 : A01) (a02 : A02 a00 a01) (a10 : A10)
+         (a11 : A11) (a12 : A12 a10 a11) (a20 : A20 a00 a10)
+         (a21 : A21 a01 a11)
+         → Type)
+  : Type⁽ᵖᵖ⁾ A02 A12 A20 A21
+  ≔ codata [
+| a .ungel : A22 a.00 a.01 a.02 a.10 a.11 a.12 a.20 a.21 ]
 
 {` Sum type `}
 
