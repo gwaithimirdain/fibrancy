@@ -229,7 +229,7 @@ def BrFibRest (A₀ A₁ : Fib) (A₂ : Br Type (A₀ .t) (A₁ .t))
     →⁽ᵖ⁾ isFibrant⁽ᵖ⁾ (sym (A₂.2) a₀₂ a₁₂) (A₀.2 .f .id a₀₀ a₁₀)
            (A₁.2 .f .id a₀₁ a₁₁) ]
 
-def BrFibRest (A₀ A₁ : Fib) (A₂ : (A₀ .t) → (A₁ .t) → Type) : Type
+{`def BrFibRest (A₀ A₁ : Fib) (A₂ : (A₀ .t) → (A₁ .t) → Type) : Type
   ≔ codata [
 | x .trr1 : A₀ .t → A₁ .t
 | x .trr.p
@@ -257,7 +257,7 @@ def BrFibRest (A₀ A₁ : Fib) (A₂ : (A₀ .t) → (A₁ .t) → Type) : Type
     → ¿isFibrant⁽ᵖ⁾ ( (A₂.2) a₀₂ a₁₂ (A₀.2 .f .id a₀₀ a₁₀)
 `    (A₁.2 .f .id a₀₁ a₁₁))ʔ `isFibrant⁽ᵖ⁾ (sym (A₂.2) a₀₂ a₁₂) (A₀.2 .f .id a₀₀ a₁₀)
 `    (A₁.2 .f .id a₀₁ a₁₁)
-]
+]`}
 
 def T (A : Type) (f : isFibrant A) : Type ≔ codata [
 | x .des.p : (a₀ : A.0) → (a₁ : A.1) → A.2 a₀ a₁ ]
@@ -299,7 +299,7 @@ def vsurj_Σ (A B : Type) (f : A → B) (fs : vsurj A B f) (P : A → Fib)
 def BrFibUnfolded (A₀ A₁ : Fib) : Type ≔ sig (
   R : Br Type (A₀ .t) (A₁ .t),
   Rf : (a₀ : A₀ .t) (a₁ : A₁ .t) → isFibrant (R a₀ a₁),
-  rest : BrFibRest A₀ A₁ R )
+  rest : BrFibRest A₀ A₁ R Rf )
 
 `| x .id1 : (a₀ : A₀ .t) (a₁ : A₁ .t) → isFibrant (x .R a₀ a₁)
 
@@ -463,3 +463,13 @@ section gen𝕗Fib ≔
      f ≔ ¿ʔ,
      v ≔ ¿ʔ)
 end
+
+axiom A : Type
+
+def T : Type ≔ codata [ x .des.p : A ]
+
+axiom x : T
+
+echo rel (rel x) .des.1
+
+def yy : Br T x x 

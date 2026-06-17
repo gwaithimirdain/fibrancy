@@ -7,6 +7,13 @@ import "fibrant_types"
 import "homotopy"
 import "univalence"
 
+def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A) ≔ ¿ʔ
+
+def fiblemma2 (A₀ : Type) (f₀ : isFibrant A₀) (A₁ : Type)
+  (f₁ : isFibrant A₁) (A₂ : Br Type A₀ A₁) (f₂ : Br isFibrant A₂ f₀ f₁)
+  : isFibrant (Br isFibrant A₂ f₀ f₁)
+  ≔ ¿ʔ
+
 def hasConn (A : Type) : Type ≔ codata [
 | x .lconn
   : (a₀ a₁ : A) → (a₂ : Br A a₀ a₁) → Br (Br A) (rel a₀) a₂ (rel a₀) a₂
@@ -16,16 +23,12 @@ def hasConn (A : Type) : Type ≔ codata [
   : (a₀ : A.0) → (a₁ : A.1) → (a₂ : A.2 a₀ a₁) → hasConn (A.2 a₀ a₁) ] 
 
 def fibHasConn (A : Type) (f : isFibrant A) : hasConn A ≔ [
-| .lconn ↦ ¿ʔ
+| .lconn ↦ a₀ a₁ a₂ ↦
+    let P : A → Fib ≔ a ↦ (Br A a₀ a, rel f .id a₀ a) in
+    ¿rel P a₂ʔ
 | .rconn ↦ ¿ʔ
 | .id.p ↦ ¿ʔ]
 
-def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A) ≔ ¿ʔ
-
-def fiblemma2 (A₀ : Type) (f₀ : isFibrant A₀) (A₁ : Type)
-  (f₁ : isFibrant A₁) (A₂ : Br Type A₀ A₁) (f₂ : Br isFibrant A₂ f₀ f₁)
-  : isFibrant (Br isFibrant A₂ f₀ f₁)
-  ≔ ¿ʔ
 
 def isFibHasConn (A : Type) : hasConn (isFibrant A) ≔ [
 | .lconn ↦ f₀ f₁ f₂ ↦
@@ -42,7 +45,7 @@ def isFibHasConn (A : Type) : hasConn (isFibrant A) ≔ [
 
 section parametrized ≔
 
-  {` We can also consider higher destructors whose typse depend on the parameters, but they have to depend on a degenerated version of the parameters.  In this case, however, it seems that we require the *parameter* to be fibrant as well. `}
+  {` We can also consider higher destructors whose types depend on the parameters, but they have to depend on a degenerated version of the parameters.  In this case, however, it seems that we require the *parameter* to have connections. `}
   axiom Γ : Type
   axiom 𝕔Γ : hasConn Γ
   axiom A (x₀ x₁ : Γ) (x₂ : Br Γ x₀ x₁) : Type
