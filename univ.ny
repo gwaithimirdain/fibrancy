@@ -419,34 +419,6 @@ def vsurj_Σ (A B : Type) (f : A → B) (v : vsurj A B f) (P : A → Fib)
            (a ⤇ Q.2 {a.0} {a.1} a.2 .t) (f.0 a₀) (f.1 a₁)
            (r.0 a₀ .f .trr p₀) (r.1 a₁ .f .trr p₁)) (ap₂ ↦ rfl.) res]
 
-
-{`
-
-
-
-
-
-g.2 a₂ p₂
-
-xxx
-(a₂ ↦ (sym (r.2 a₂) .t (r.0 a₀ .f .liftr p₀) (r.1 a₁ .f .liftr p₁)  ,
-  sym (r.2 a₂) .f .id.1 (r.0 a₀ .f .liftr p₀) (r.1 a₁ .f .liftr p₁)))
-  
-r.2 : : {a₀′ : A.0} {a₁′ : A.1} (a₂ : A.2 a₀′ a₁′)
-    →⁽ᵖ⁾ Fib⁽ᵖᵖ⁾ (P.2 a₂) (Q.2 (f.2 a₂)) (r.0 a₀′) (r.1 a₁′)
-
-kell : (a : A.2 a₀ a₁)
- → Fib⁽ᵖ⁾
-    (P.2 a .t p₀ p₁, ?)
-    (Q.2 (f.2 a) .t (r.0 a₀ .f .trr p₀) (r.1 a₁ .f .trr p₁), ?))
-`}
-
-` (a₂ ↦ (r.2 a₂ .f .id.1 {p₀}{p₁} ? {g.0 a₀ p₀}{g.1 a₁ p₁} ? , ?))
-` (a₂ ↦ r.2 a₂ .f .id.1 p₀ p₁)
-` (a₂ ↦ )
-` (a₂ ↦ P.2 a₂ .t p₀ p₁)
-` (b₂ ↦ Q.2 b₂ .t (g.0 a₀ p₀) (g.1 a₁ p₁))
-
 def BrFibUnfolded (A₀ A₁ : Fib) : Type ≔ sig (
   R : Br Type (A₀ .t) (A₁ .t),
   Rf : (a₀ : A₀ .t) (a₁ : A₁ .t) → isFibrant (R a₀ a₁),
@@ -600,7 +572,7 @@ section gen𝕗Fib ≔
     let g
       : (X₂ x₀ x₁)
         → Σ⁽ᵖ⁾ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R ↦ P₀ R .t} {R ↦ P₁ R .t} (R ⤇ P₂ R.2 .t)
-            (f₀ x₀) (f₁ x₁)
+            (R₀, p₀) (R₁, p₁)
       ≔ x₂ ↦ f₂ {x₀} {x₁} x₂ in
     let v₀ : vsurj X₀ (Σ (∂₀ .t → Fib) (R ↦ P₀ R .t)) f₀ ≔ u₀ .v in
     let v₁ : vsurj X₁ (Σ (∂₁ .t → Fib) (R ↦ P₁ R .t)) f₁ ≔ u₁ .v in
@@ -609,6 +581,11 @@ section gen𝕗Fib ≔
           (Σ⁽ᵖ⁾ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R ↦ P₀ R .t} {R ↦ P₁ R .t}
              (R ⤇ P₂ R.2 .t)) f₂ v₀ v₁
       ≔ u₂ .v in
+    let vg
+      : vsurj (X₂ x₀ x₁)
+          (Σ⁽ᵖ⁾ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R ↦ P₀ R .t} {R ↦ P₁ R .t}
+             (R ⤇ P₂ R.2 .t) (R₀, p₀) (R₁, p₁)) g
+      ≔ v₂ .id.1 x₀ x₁ in
     (∂ ≔ Σ𝕗 ∂₀ (y₀ ↦ Σ𝕗 ∂₁ (y₁ ↦ to𝕗Rel ∂₀ ∂₁ ∂₂ y₀ y₁)),
      P ≔ ¿ʔ,
      f ≔ ¿ʔ,
