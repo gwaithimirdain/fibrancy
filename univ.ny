@@ -351,6 +351,28 @@ def trr_trl (A₀ A₁ : Fib) (A₂ : Br Fib A₀ A₁) (a₁ : A₁ .t)
       .id.2 (A₂ .f .liftl a₁) (A₂ .f .liftr (A₂ .f .trl a₁))
       .trr ((A₂ .f .trl a₁)⁽ᵖ⁾)
 
+def funext (A B : Fib) (f g : A .t → B .t)
+  (H : (x : A .t) → Id𝕗 B (f x) (g x) .t)
+  : Br (A .t → B .t) f g
+  ≔ a ⤇ J A a.0 (a1 a2 ↦ Id𝕗 B (f a.0) (g a1)) (H a.0) a.1 a.2
+
+def blip (A0 A1 : Fib) (A2 : Br Fib A0 A1) (f : A0 .t → A1 .t)
+  (H : (x : A0 .t) → Id𝕗 A1 (f x) (A2 .f .trr x) .t)
+  : Br Fib A0 A1
+  ≔ (
+  t ≔ A2 .t,
+  f ≔ [
+  | .trr.p ⤇ a2 ⤇ A2 .f .trr.2 a2
+  | .trr.1 ⤇ f
+  | .trl.p ⤇ a2 ⤇ A2 .f .trl.2 a2
+  | .trl.1 ⤇ A2 .f .trl
+  | .liftr.p ⤇ a2 ⤇ A2 .f .liftr.2 a2
+  | .liftr.1 ⤇ a0 ↦ rel A2 .f .id.1 (rel a0) (H a0) .trl (A2 .f .liftr a0)
+  | .liftl.p ⤇ a2 ⤇ A2 .f .liftl.2 a2
+  | .liftl.1 ⤇ A2 .f .liftl
+  | .id.p ⤇ a02 a12 ⤇ A2 .f .id.2 a02 a12
+  | .id.1 ⤇ A2 .f .id])
+
 def vsurj_Σ (A B : Type) (f : A → B) (v : vsurj A B f) (P : A → Fib)
   (Q : B → Fib) (r : (a : A) → Br Fib (P a) (Q (f a)))
   : let g : (a : A) (p : P a .t) → Q (f a) .t ≔ a p ↦ r a .f .trr p in
@@ -391,76 +413,44 @@ def vsurj_Σ (A B : Type) (f : A → B) (v : vsurj A B f) (P : A → Fib)
         Q.2 b₂ .t (g.0 a₀ p₀) (g.1 a₁ p₁),
         Q.2 b₂ .f .id (g.0 a₀ p₀) (g.1 a₁ p₁)) in
       let P₂ : A₂ → Fib ≔ a₂ ↦ (P.2 a₂ .t p₀ p₁, P.2 a₂ .f .id p₀ p₁) in
-      let r₂ : (a₂ : A₂) → Fib⁽ᵖ⁾ (P₂ a₂) (Q₂ (f₂ a₂)) ≔ a₂ ↦ (
-        sym (r.2 a₂) .t (r.0 a₀ .f .liftr p₀) (r.1 a₁ .f .liftr p₁),
-        r.2 a₂ .f .id.2 (r.0 a₀ .f .liftr p₀) (r.1 a₁ .f .liftr p₁)) in
+      let r₂ : (a₂ : A₂) → Fib⁽ᵖ⁾ (P₂ a₂) (Q₂ (f₂ a₂))
+        ≔ a₂ ↦
+          blip (Idd𝕗 (P.0 a₀) (P.1 a₁) (P.2 a₂) p₀ p₁)
+            (Idd𝕗 (Q.0 (f.0 a₀)) (Q.1 (f.1 a₁)) (Q.2 (f.2 a₂)) (g.0 a₀ p₀)
+               (g.1 a₁ p₁))
+            (sym (r.2 a₂) .t (r.0 a₀ .f .liftr p₀) (r.1 a₁ .f .liftr p₁),
+             sym (r.2 a₂)
+               .f
+               .id.1 (r.0 a₀ .f .liftr p₀) (r.1 a₁ .f .liftr p₁))
+            (p₂ ↦ g.2 a₂ p₂)
+            (p₂ ↦
+             rel
+                 (sym (r.2 a₂)
+                  .f
+                  .id.1 (r.0 a₀ .f .liftr p₀) (r.1 a₁ .f .liftr p₁))
+             .id.2 (sym (r.2 a₂ .f .liftr.1 p₂))
+               (sym (r.2 a₂)
+                .f
+                .id.1 (r.0 a₀ .f .liftr p₀) (r.1 a₁ .f .liftr p₁)
+                .liftr p₂)
+             .trr (rel p₂)) in
       let res
         : vsurj (Σ A₂ (a₂ ↦ P₂ a₂ .t)) (Σ B₂ (b₂ ↦ Q₂ b₂ .t))
             (ap₂ ↦ (f₂ (ap₂ .fst), g.2 (ap₂ .fst) (ap₂ .snd)))
-        ≔ ¿vsurj_Σ A₂ B₂ f₂ v₂ P₂ Q₂ ?ʔ in
+        ≔ vsurj_Σ A₂ B₂ f₂ v₂ P₂ Q₂ r₂ in
       vsurj_eqv (Σ A₂ (a₂ ↦ P₂ a₂ .t)) (Σ B₂ (b₂ ↦ Q₂ b₂ .t))
         (ap₂ ↦ (f₂ (ap₂ .fst), g.2 (ap₂ .fst) (ap₂ .snd)))
         (Σ⁽ᵖ⁾ A.2 {a ↦ P.0 a .t} {a ↦ P.1 a .t} (a ⤇ P.2 a.2 .t) ap₀ ap₁)
         (Σ⁽ᵖ⁾ B.2 {b ↦ Q.0 b .t} {b ↦ Q.1 b .t} (b ⤇ Q.2 b.2 .t)
            (f.0 a₀, r.0 a₀ .f .trr p₀) (f.1 a₁, r.1 a₁ .f .trr p₁))
-        (a2 ↦ (f.2 (a2 .fst), r.2 (a2 .fst) .f .trr.1 (a2 .snd))) ¿ʔ
-        ¿ʔ ¿ʔ ¿ʔ]
+        (a2 ↦ (f.2 (a2 .fst), r.2 (a2 .fst) .f .trr.1 (a2 .snd)))
+        (id_Σ_iso A.0 A.1 A.2 (a ↦ P.0 a .t) (a ↦ P.1 a .t)
+           (a ⤇ P.2 {a.0} {a.1} a.2 .t) a₀ a₁ p₀ p₁)
+        (id_Σ_iso B.0 B.1 B.2 (a ↦ Q.0 a .t) (a ↦ Q.1 a .t)
+           (a ⤇ Q.2 {a.0} {a.1} a.2 .t) (f.0 a₀) (f.1 a₁)
+           (r.0 a₀ .f .trr p₀) (r.1 a₁ .f .trr p₁)) (ap₂ ↦ rfl.) res]
 
-def vsurj_sig (A B : Type) (f : A → B) (v : vsurj A B f) (P : A → Fib)
-  (Q : B → Fib) (r : (a : A) → Br Fib (P a) (Q (f a)))
-  : let g : (a : A) (p : P a .t) → Q (f a) .t ≔ a p ↦ r a .f .trr p in
-    vsurj (Σ A (a ↦ P a .t)) (Σ B (b ↦ Q b .t))
-      (ap ↦ (f (ap .fst), g (ap .fst) (ap .snd)))
-  ≔
-  let g : (a : A) (p : P a .t) → Q (f a) .t ≔ a p ↦ r a .f .trr p in
-  [ .surj ↦ bq ↦
-      let b ≔ bq .fst in
-      let q ≔ bq .snd in
-      (fst ≔ v .surj b,
-       snd ≔ r (v .surj b) .f .trl (Q⁽ᵖ⁾ (v .surjeq b) .f .trl q))
-  | .surjeq ↦ bq ↦
-      let b ≔ bq .fst in
-      let q ≔ bq .snd in
-      let a ≔ v .surj b in
-      let e : Br B (f a) b ≔ v .surjeq b in
-      (fst ≔ e,
-       snd ≔
-         let q₀₀ ≔ Q⁽ᵖ⁾ e .f .trl q in
-         let q₀₁ ≔ r a .f .trr (r a .f .trl q₀₀) in
-         let q₀₂ ≔ trr_trl (P a) (Q (f a)) (r a) q₀₀ in
-         let q₁₀ ≔ q in
-         let q₁₁ ≔ q in
-         let q₁₂ ≔ q⁽ᵖ⁾ in
-         let q₂₁ ≔ Q⁽ᵖ⁾ e .f .liftl q in
-         Q⁽ᵖᵖ⁾ (e⁽ᵖ⁾) .f .id.1 q₀₂ q₁₂ .trr q₂₁)
-  | .id.p ↦ ap₀ ap₁ ↦
-      let a₀ ≔ ap₀ .fst in
-      let p₀ ≔ ap₀ .snd in
-      let a₁ ≔ ap₁ .fst in
-      let p₁ ≔ ap₁ .snd in
-      let A₂ ≔ A.2 a₀ a₁ in
-      let B₂ ≔ B.2 (f.0 a₀) (f.1 a₁) in
-      let f₂ : A₂ → B₂ ≔ a₂ ↦ f.2 a₂ in
-      let v₂ : vsurj A₂ B₂ f₂ ≔ v.2 .id a₀ a₁ in
-      let Q₂ : B₂ → Fib ≔ b₂ ↦ (
-        Q.2 b₂ .t (g.0 a₀ p₀) (g.1 a₁ p₁),
-        Q.2 b₂ .f .id (g.0 a₀ p₀) (g.1 a₁ p₁)) in
-      let P₂ : A₂ → Fib ≔ a₂ ↦ (P.2 a₂ .t p₀ p₁, P.2 a₂ .f .id p₀ p₁) in
-      let r₂ : (a₂ : A₂) → Fib⁽ᵖ⁾ (P₂ a₂) (Q₂ (f₂ a₂)) ≔ a₂ ↦ (
-        sym (r.2 a₂) .t (r.0 a₀ .f .liftr p₀) (r.1 a₁ .f .liftr p₁),
-        r.2 a₂ .f .id.2 (r.0 a₀ .f .liftr p₀) (r.1 a₁ .f .liftr p₁)) in
-      let res
-        : vsurj (Σ A₂ (a₂ ↦ P₂ a₂ .t)) (Σ B₂ (b₂ ↦ Q₂ b₂ .t))
-            (ap₂ ↦ (f₂ (ap₂ .fst), g.2 (ap₂ .fst) (ap₂ .snd)))
-        ≔ ¿vsurj_Σ A₂ B₂ f₂ v₂ P₂ Q₂ ?ʔ in
-      ¿vsurj_Σ A.2 B.2 ʔ]
-  {`vsurj_eqv (Σ A₂ (a₂ ↦ P₂ a₂ .t)) (Σ B₂ (b₂ ↦ Q₂ b₂ .t))
-  (ap₂ ↦ (f₂ (ap₂ .fst), g.2 (ap₂ .fst) (ap₂ .snd)))
-  (Σ⁽ᵖ⁾ A.2 {a ↦ P.0 a .t} {a ↦ P.1 a .t} (a ⤇ P.2 a.2 .t) ap₀ ap₁)
-  (Σ⁽ᵖ⁾ B.2 {b ↦ Q.0 b .t} {b ↦ Q.1 b .t} (b ⤇ Q.2 b.2 .t)
-  (f.0 a₀, r.0 a₀ .f .trr p₀) (f.1 a₁, r.1 a₁ .f .trr p₁))
-  (a2 ↦ (f.2 (a2 .fst), r.2 (a2 .fst) .f .trr.1 (a2 .snd))) ¿ʔ
-  ¿ʔ ¿ʔ ¿ʔ`} 
+
 {`
 
 
@@ -664,4 +654,3 @@ axiom x : T
 
 echo rel (rel x) .des.1
 
-def yy : Br T x x 
