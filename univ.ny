@@ -405,7 +405,65 @@ def vsurj_Σ (A B : Type) (f : A → B) (v : vsurj A B f) (P : A → Fib)
            (f.0 a₀, r.0 a₀ .f .trr p₀) (f.1 a₁, r.1 a₁ .f .trr p₁))
         (a2 ↦ (f.2 (a2 .fst), r.2 (a2 .fst) .f .trr.1 (a2 .snd))) ¿ʔ
         ¿ʔ ¿ʔ ¿ʔ]
+
+def vsurj_sig (A B : Type) (f : A → B) (v : vsurj A B f) (P : A → Fib)
+  (Q : B → Fib) (r : (a : A) → Br Fib (P a) (Q (f a)))
+  : let g : (a : A) (p : P a .t) → Q (f a) .t ≔ a p ↦ r a .f .trr p in
+    vsurj (Σ A (a ↦ P a .t)) (Σ B (b ↦ Q b .t))
+      (ap ↦ (f (ap .fst), g (ap .fst) (ap .snd)))
+  ≔
+  let g : (a : A) (p : P a .t) → Q (f a) .t ≔ a p ↦ r a .f .trr p in
+  [ .surj ↦ bq ↦
+      let b ≔ bq .fst in
+      let q ≔ bq .snd in
+      (fst ≔ v .surj b,
+       snd ≔ r (v .surj b) .f .trl (Q⁽ᵖ⁾ (v .surjeq b) .f .trl q))
+  | .surjeq ↦ bq ↦
+      let b ≔ bq .fst in
+      let q ≔ bq .snd in
+      let a ≔ v .surj b in
+      let e : Br B (f a) b ≔ v .surjeq b in
+      (fst ≔ e,
+       snd ≔
+         let q₀₀ ≔ Q⁽ᵖ⁾ e .f .trl q in
+         let q₀₁ ≔ r a .f .trr (r a .f .trl q₀₀) in
+         let q₀₂ ≔ trr_trl (P a) (Q (f a)) (r a) q₀₀ in
+         let q₁₀ ≔ q in
+         let q₁₁ ≔ q in
+         let q₁₂ ≔ q⁽ᵖ⁾ in
+         let q₂₁ ≔ Q⁽ᵖ⁾ e .f .liftl q in
+         Q⁽ᵖᵖ⁾ (e⁽ᵖ⁾) .f .id.1 q₀₂ q₁₂ .trr q₂₁)
+  | .id.p ↦ ap₀ ap₁ ↦
+      let a₀ ≔ ap₀ .fst in
+      let p₀ ≔ ap₀ .snd in
+      let a₁ ≔ ap₁ .fst in
+      let p₁ ≔ ap₁ .snd in
+      let A₂ ≔ A.2 a₀ a₁ in
+      let B₂ ≔ B.2 (f.0 a₀) (f.1 a₁) in
+      let f₂ : A₂ → B₂ ≔ a₂ ↦ f.2 a₂ in
+      let v₂ : vsurj A₂ B₂ f₂ ≔ v.2 .id a₀ a₁ in
+      let Q₂ : B₂ → Fib ≔ b₂ ↦ (
+        Q.2 b₂ .t (g.0 a₀ p₀) (g.1 a₁ p₁),
+        Q.2 b₂ .f .id (g.0 a₀ p₀) (g.1 a₁ p₁)) in
+      let P₂ : A₂ → Fib ≔ a₂ ↦ (P.2 a₂ .t p₀ p₁, P.2 a₂ .f .id p₀ p₁) in
+      let r₂ : (a₂ : A₂) → Fib⁽ᵖ⁾ (P₂ a₂) (Q₂ (f₂ a₂)) ≔ a₂ ↦ (
+        sym (r.2 a₂) .t (r.0 a₀ .f .liftr p₀) (r.1 a₁ .f .liftr p₁),
+        r.2 a₂ .f .id.2 (r.0 a₀ .f .liftr p₀) (r.1 a₁ .f .liftr p₁)) in
+      let res
+        : vsurj (Σ A₂ (a₂ ↦ P₂ a₂ .t)) (Σ B₂ (b₂ ↦ Q₂ b₂ .t))
+            (ap₂ ↦ (f₂ (ap₂ .fst), g.2 (ap₂ .fst) (ap₂ .snd)))
+        ≔ ¿vsurj_Σ A₂ B₂ f₂ v₂ P₂ Q₂ ?ʔ in
+      ¿vsurj_Σ A.2 B.2 ʔ]
+  {`vsurj_eqv (Σ A₂ (a₂ ↦ P₂ a₂ .t)) (Σ B₂ (b₂ ↦ Q₂ b₂ .t))
+  (ap₂ ↦ (f₂ (ap₂ .fst), g.2 (ap₂ .fst) (ap₂ .snd)))
+  (Σ⁽ᵖ⁾ A.2 {a ↦ P.0 a .t} {a ↦ P.1 a .t} (a ⤇ P.2 a.2 .t) ap₀ ap₁)
+  (Σ⁽ᵖ⁾ B.2 {b ↦ Q.0 b .t} {b ↦ Q.1 b .t} (b ⤇ Q.2 b.2 .t)
+  (f.0 a₀, r.0 a₀ .f .trr p₀) (f.1 a₁, r.1 a₁ .f .trr p₁))
+  (a2 ↦ (f.2 (a2 .fst), r.2 (a2 .fst) .f .trr.1 (a2 .snd))) ¿ʔ
+  ¿ʔ ¿ʔ ¿ʔ`} 
 {`
+
+
 
 
 
