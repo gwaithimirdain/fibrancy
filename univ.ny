@@ -522,7 +522,8 @@ def vsurj_gel (A0 A1 : Type)
          Br A22 a0.22 a1.22 a202 a212 (a220 .ungel) a221)
   | .id.p ↦ ¿ʔ]]
 
-def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A) ≔ ¿ʔ
+def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A)
+  ≔ ¿ʔ
 
 def vsurj_gel2 (A₀ A₁ : Type)
   : vsurj
@@ -728,14 +729,30 @@ def GelRoundTrip (A B : Type) (F : Br Type A B) (a : A) (b : B)
   ≔ Gel (F a b) (Gel A B (x y ↦ F x y) a b)
       (f f' ↦ rel (F a b) f (f' .ungel))
 
+def Gel_iso_prim (A₀ A₁ : Type) (A₂ : A₀ → A₁ → Type) (a₀ : A₀) (a₁ : A₁)
+  : (A₂ a₀ a₁) ≅ (Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁)
+  ≔ (
+  to ≔ a₂ ↦ (ungel ≔ a₂),
+  fro ≔ a₂ ↦ a₂ .ungel,
+  fro_to ≔ _ ↦ rfl.,
+  to_fro ≔ _ ↦ rfl.,
+  to_fro_to ≔ _ ↦ rfl.)
+
+
+
 def Gel_iso (A₀ A₁ : Type) (A₂ : Br Type A₀ A₁) (a₀ : A₀) (a₁ : A₁)
-  : Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁ ≅ A₂ a₀ a₁
+  : (A₂ a₀ a₁) ≅ (Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁)
+  ≔ Gel_iso_prim A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁
+
+def Gel_iso_inv (A₀ A₁ : Type) (A₂ : Br Type A₀ A₁) (a₀ : A₀) (a₁ : A₁)
+  : (Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁) ≅ (A₂ a₀ a₁)
   ≔ (
   to ≔ a₂ ↦ a₂ .ungel,
   fro ≔ a₂ ↦ (ungel ≔ a₂),
   fro_to ≔ _ ↦ rfl.,
   to_fro ≔ _ ↦ rfl.,
   to_fro_to ≔ _ ↦ rfl.)
+
 
 
 def funExt (A : Type) (P : A → Type) (f g : (x : A) → P x)
@@ -770,16 +787,89 @@ def vsurjd_fun (A₀ A₁ : Type) : Br Type A₀ A₁ → A₀ → A₁ → Type
 
 `def vsurjd_fund (A₀ A₁ : Type) (A₂: Br Type A₀ A₁) (R:A₀ → A₁→ Type) 
 
+`seems like we need coinductive extensionality to prove the following
 def isFibIso (A B : Type) : (A ≅ B) → (isFibrant A) ≅ (isFibrant B) ≔ e ↦ (
   to ≔ 𝕗eqv A B e,
-  fro ≔ ¿ʔ,
-  fro_to ≔ ¿ʔ,
+  fro ≔ 𝕗eqv B A (inverse_eqv A B e),
+  fro_to ≔ Af ↦ ¿ʔ,
   to_fro ≔ ¿ʔ,
   to_fro_to ≔ ¿ʔ)
 
-def vsurjd_lemma  (A₀ A₁ : Type) : vsurjᵈ (Br Type A₀ A₁) (A₀ → A₁→ Type) (A₂ ↦ a₀ a₁ ↦ A₂ a₀ a₁)
-(A₂ ↦ (a₀:A₀)->(a₁:A₁) -> isFibrant (A₂ a₀ a₁))
-(R ↦ (a₀:A₀)->(a₁:A₁) -> isFibrant ((Gel A₀ A₁ R) a₀ a₁))
-(A₂ ↦ f ↦ a₀ a₁ ↦ f (Gel_iso A₀ A₁ A₂ .fro ) a₀ a₁) (vsurj_gel A₀ A₁) := ?
+def 𝕗eqv_inverse (A : Type) (B : Type) (e : A ≅ B) (𝕗B : isFibrant B)
+  : isFibrant A
+  ≔ [
+| .trr.p ↦ a0 ↦ e.1 .fro (𝕗B.2 .trr (e.0 .to a0))
+| .trl.p ↦ ¿ʔ
+| .liftr.p ↦ ¿ʔ
+| .liftl.p ↦ ¿ʔ
+| .id.p ↦ ¿ʔ]
+
+{` Fibrancy transports across equivalences. `}
+def 𝕗eqv (A B : Type) (e : A ≅ B) (𝕗A : isFibrant A) : isFibrant B ≔ [
+| .trr.p ↦ b0 ↦ e.1 .to (𝕗A.2 .trr (e.0 .fro b0))
+| .trl.p ↦ b1 ↦ e.0 .to (𝕗A.2 .trl (e.1 .fro b1))
+| .liftr.p ↦ b0 ↦
+    eq.trr B.0 (b ↦ B.2 b (e.1 .to (𝕗A.2 .trr (e.0 .fro b0))))
+      (e.0 .to (e.0 .fro b0)) b0 (e.0 .to_fro b0)
+      (e.2 .to (𝕗A.2 .liftr (e.0 .fro b0)))
+| .liftl.p ↦ b1 ↦
+    eq.trr B.1 (b ↦ B.2 (e.0 .to (𝕗A.2 .trl (e.1 .fro b1))) b)
+      (e.1 .to (e.1 .fro b1)) b1 (e.1 .to_fro b1)
+      (e.2 .to (𝕗A.2 .liftl (e.1 .fro b1)))
+| .id.p ↦ b0 b1 ↦
+    𝕗eqv (A.2 (e.0 .fro b0) (e.1 .fro b1)) (B.2 b0 b1)
+      (Id_eqv A.0 A.1 A.2 B.0 B.1 B.2 e.0 e.1 e.2 b0 b1)
+      (𝕗A.2 .id (e.0 .fro b0) (e.1 .fro b1))]
+
+def isFibIso (A₀ A₁ : Type) (A₂ : Br Type A₀ A₁) (a₀ : A₀) (a₁ : A₁)
+  : isFibrant (A₂ a₀ a₁) ≅ isFibrant (Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁)
+  ≔ (
+  to ≔
+    𝕗eqv (A₂ a₀ a₁) (Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁)
+      (Gel_iso A₀ A₁ A₂ a₀ a₁),
+  fro ≔
+    𝕗eqv (Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁) (A₂ a₀ a₁)
+      (Gel_iso_inv A₀ A₁ A₂ a₀ a₁),
+  fro_to ≔ f ↦ ¿rfl.ʔ,
+  to_fro ≔ ¿ʔ,
+  to_fro_to ≔ ¿ʔ)
+
+def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A) ≔ [
+| .trr.p ↦ x ↦ f.1
+| .trl.p ↦ x ↦ f.0
+| .liftr.p ↦ f₀ ↦ ¿ʔ
+| .liftl.p ↦ ¿ʔ
+| .id.p ↦ ¿ʔ]
+
+def vsurjd_lemma (A₀ A₁ : Type) (A₀f : isFibrant A₀) (A₁f : isFibrant A₁)
+  : vsurjᵈ (Br Type A₀ A₁) (A₀ → A₁ → Type) (A₂ ↦ a₀ a₁ ↦ A₂ a₀ a₁)
+      (A₂ ↦ (a₀ : A₀) → (a₁ : A₁) → isFibrant (A₂ a₀ a₁))
+      (R ↦ (a₀ : A₀) → (a₁ : A₁) → isFibrant ((Gel A₀ A₁ R) a₀ a₁))
+      (A₂ ↦ f ↦ a₀ a₁ ↦
+       𝕗eqv (A₂ a₀ a₁) (Gel A₀ A₁ (a₀′ a₁′ ↦ A₂ a₀′ a₁′) a₀ a₁)
+         (Gel_iso A₀ A₁ A₂ a₀ a₁) (f a₀ a₁)) (vsurj_gel A₀ A₁)
+  ≔ [
+| .surj ↦
+  R Rf a₀ a₁ ↦
+  `𝕗eqv (A₂ a₀ a₁) (Gel A₀ A₁ A₂ a₀ a₁) (Gel_iso_prim A₀ A₁ A₂ a₀ a₁)
+  (Rf a₀ a₁)
+| .surjeq ↦ R Rf ↦
+    let l
+      : (a₀ : A₀) → (a₁ : A₁) → isFibrant (isFibrant (Gel A₀ A₁ R a₀ a₁))
+      ≔ a₀ a₁ ↦ fiblemma (Gel A₀ A₁ R a₀ a₁) (Rf a₀ a₁) in
+    a₀ a₁ ⤇ ¿ʔ
+| .id.p ↦ ¿ʔ]
+
+
+
+def vsurjd_lemma1 (A B : Type) (f : A → B) (P : A → Type) (Q : B → Type) (fv : vsurj A B f)
+  (e : (y : B) → P (fv .surj y) ≅ Q y) 
+  : vsurjᵈ A B f P Q (a ↦ e (f a) .to) fv
+  ≔ [ .surj ↦ b q ↦ ¿ʔ | .surjeq ↦ ¿ʔ | .id.p ↦ ¿ʔ ]
+
+{`[
+| .surj ↦ A₂ f a₀ a₁ ↦ f a₀ a₁
+| .surjeq ↦ A₂ f ↦ p₀ p₁ ⤇ ¿ʔ
+| .id.p ↦ ¿ʔ]
 ` BrIsFib_eq (A₀ A₁ : Fib) : Br Fib A₀ A₁ ≅ BrFibUnfolded A₀ A₁
 
