@@ -265,3 +265,46 @@ def 𝕗Fib : isFibrant Fib ≔ [
          (A2 ↦ ¿ʔ))]
 
 {` In addition to building in vsurj_gel, what's missing to be able to finish these proofs in Narya is the ability to prove generic things about higher coinductive types for vsurjᵈ_glue and "isFibrant isBisim".  The problem is that the higher coinductive type changes as we pass to higher dimensions in the corecursive cases.  The obvious idea would be to formulate a general family of such (a "higher indexed M-type") and then generalize the statement to apply to all of them, so that the corecursive case is an honest corecursive call to a different element of the family.  But I think in order for that to work, the parameters of the family have to be "modal" in some way that prevent them from getting degenerated in the context of higher destructors; see "test/black/hct-hott.t/fibrant_sqrt.ny". `}
+
+` it seems that we need to assume A, B, B' are fibrant to make this
+` work. we only have funext for fibrant types. in the place where we
+` want to apply it, we only have that A is fibrant
+def vsurj_fun (A : Type) (B B' : A → Type) (f : (a : A) → B a → B' a)
+  (v : (a : A) → vsurj (B a) (B' a) (f a))
+  : vsurj ((a : A) → B a) ((a : A) → B' a) (g a ↦ f a (g a))
+  ≔ [
+| .surj ↦ g' a ↦ v a .surj (g' a)
+| .surjeq ↦ g' ↦ {a₀} {a₁} a₂ ↦ ¿v a₀ .surjeq (g' a₀)ʔ
+| .id.p ↦ ¿ʔ]
+
+` this doesn't work either:
+def vsurj_fun' (A : Type) (B B' : A → Type)
+  (f : (a₀ a₁ : A) (a₂ : Br A a₀ a₁) → B a₀ → B' a₁)
+  (v : (a₀ a₁ : A) (a₂ : Br A a₀ a₁) → vsurj (B a₀) (B' a₁) (f a₀ a₁ a₂))
+  : vsurj ((a : A) → B a) ((a : A) → B' a) (g a ↦ f a a (rel a) (g a))
+  ≔ [
+| .surj ↦ g' a ↦ v a a (rel a) .surj (g' a)
+| .surjeq ↦ g' ↦ {a₀} {a₁} a₂ ↦ ¿v a₀ a₁ a₂ .surjeq (g' a₁)ʔ
+| .id.p ↦ ¿ʔ]
+
+` we cannot prove the following closure of vsurj under × this way, we
+` need a more heterogeneous version (this is also a consequence of
+` vsurjΣ); this shows why we are in trouble if we want to prove
+def vsurj× (A B : Type) (f : A → B) (v : vsurj Aa B f)
+  : vsurj (A × A) (B × B) (aa ↦ (f (aa .fst), f (aa .snd)))
+  ≔ [
+| .surj ↦ bb ↦ (v .surj (bb .fst), v .surj (bb .snd))
+| .surjeq ↦ bb ↦ (fst ≔ v .surjeq (bb .fst), snd ≔ v .surjeq (bb .snd))
+| .id.p ↦ aa₀ aa₁ ↦
+    vsurj_eqv (A.2 (aa₀ .fst) (aa₁ .fst) × A.2 (aa₀ .snd) (aa₁ .snd))
+      (B.2 (f.0 (aa₀ .fst)) (f.1 (aa₁ .fst))
+       × B.2 (f.0 (aa₀ .snd)) (f.1 (aa₁ .snd)))
+      (aa₂ ↦ (f.2 (aa₂ .fst), f.2 (aa₂ .snd))) (prod⁽ᵖ⁾ A.2 A.2 aa₀ aa₁)
+      (prod⁽ᵖ⁾ B.2 B.2 (f.0 (aa₀ .fst), f.0 (aa₀ .snd))
+         (f.1 (aa₁ .fst), f.1 (aa₁ .snd)))
+      (a2 ↦ (f.2 (a2 .fst), f.2 (a2 .snd)))
+      (id_prod_iso A.0 A.1 A.2 A.0 A.1 A.2 (aa₀ .fst) (aa₁ .fst) (aa₀ .snd)
+         (aa₁ .snd))
+      (id_prod_iso B.0 B.1 B.2 B.0 B.1 B.2 (f.0 (aa₀ .fst))
+         (f.1 (aa₁ .fst)) (f.0 (aa₀ .snd)) (f.1 (aa₁ .snd))) (aa₂ ↦ rfl.)
+      ¿vsurj× (A.2 (aa₀ .fst) (aa₁ .fst)) (A.2 (aa₀ .snd) (aa₁ .snd)) ()ʔ]
