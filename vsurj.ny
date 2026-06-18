@@ -290,7 +290,7 @@ def vsurj_fun' (A : Type) (B B' : A → Type)
 ` we cannot prove the following closure of vsurj under × this way, we
 ` need a more heterogeneous version (this is also a consequence of
 ` vsurjΣ); this shows why we are in trouble if we want to prove
-def vsurj× (A B : Type) (f : A → B) (v : vsurj Aa B f)
+def vsurj× (A B : Type) (f : A → B) (v : vsurj A B f)
   : vsurj (A × A) (B × B) (aa ↦ (f (aa .fst), f (aa .snd)))
   ≔ [
 | .surj ↦ bb ↦ (v .surj (bb .fst), v .surj (bb .snd))
@@ -308,3 +308,6 @@ def vsurj× (A B : Type) (f : A → B) (v : vsurj Aa B f)
       (id_prod_iso B.0 B.1 B.2 B.0 B.1 B.2 (f.0 (aa₀ .fst))
          (f.1 (aa₁ .fst)) (f.0 (aa₀ .snd)) (f.1 (aa₁ .snd))) (aa₂ ↦ rfl.)
       ¿vsurj× (A.2 (aa₀ .fst) (aa₁ .fst)) (A.2 (aa₀ .snd) (aa₁ .snd)) ()ʔ]
+
+def vsurj_eqv1 : (A B : Type)(f : A → B)(C : Type)(v : vsurj A B f) :
+  vsurj (A × C) (B × C) (ac ↦ (f (ac . fst) , ac .snd)) := ?
