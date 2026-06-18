@@ -7,7 +7,24 @@ import "fibrant_types"
 import "homotopy"
 import "univalence"
 
-def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A) ≔ ¿ʔ
+def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A) ≔ [
+| .trr.p ↦ x ↦ f.1
+| .trl.p ↦ x ↦ f.0
+| .liftr.p ↦ f₀ ↦ ¿ʔ
+| .liftl.p ↦ ¿ʔ
+| .id.p ↦ ¿ʔ]
+
+def fibProp (A : Type) (f₀ f₁ : isFibrant A) : Br (isFibrant A) f₀ f₁ ≔ [
+| .trr.p ⤇ x ⤇ ¿ʔ
+| .trr.1 ⤇ ¿ʔ
+| .trl.p ⤇ ¿ʔ
+| .trl.1 ⤇ ¿ʔ
+| .liftr.p ⤇ ¿ʔ
+| .liftr.1 ⤇ ¿ʔ
+| .liftl.p ⤇ ¿ʔ
+| .liftl.1 ⤇ ¿ʔ
+| .id.p ⤇ ¿ʔ
+| .id.1 ⤇ ¿ʔ]
 
 def fiblemma2 (A₀ : Type) (f₀ : isFibrant A₀) (A₁ : Type)
   (f₁ : isFibrant A₁) (A₂ : Br Type A₀ A₁) (f₂ : Br isFibrant A₂ f₀ f₁)
