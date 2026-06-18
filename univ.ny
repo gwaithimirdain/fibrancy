@@ -7,7 +7,15 @@ import "fibrant_types"
 import "homotopy"
 import "univalence"
 
+
 ` copy and paste from vsurj.ny
+`==========================================
+
+def mapΣ (A B : Type) (f : A → B) (Aᵈ : A → Type) (Bᵈ : B → Type)
+  (fᵈ : (x : A) → Aᵈ x → Bᵈ (f x))
+  : Σ A Aᵈ → Σ B Bᵈ
+  ≔ u ↦ (f (u .fst), fᵈ (u .fst) (u .snd))
+
 def vsurj (A B : Type) (f : A → B) : Type ≔ codata [
 | s .surj : B → A
 | s .surjeq : (b : B) → Br B (f (s .surj b)) b
@@ -49,6 +57,80 @@ def vsurj_eqv (A0 B0 : Type) (f0 : A0 → B0) (A1 B1 : Type) (f1 : A1 → B1)
 Id_eq B1.0 B1.1 B1.2 (eB.0 .to (f0.0 (eA.0 .fro a0))) (eB.1 .to (f0.1 (eA.1 .fro a1))) (eB.2 .to (f0.2 a2)) (f1.0 (eA.0 .to (eA.0 .fro a0))) (f1.1 (eA.1 .to (eA.1 .fro a1)))  (f1.2 (eA.2 .to a2)) (ef.0 (eA.0 .fro a0)) (ef.1 (eA.1 .fro a1)) (ef.2 a2)
  ʔ)
       (s0.2 .id (eA.0 .fro a0) (eA.1 .fro a1))]
+
+{` To build this, we start with a dependent/displayed version of very-surjective. `}
+def vsurjᵈ (A B : Type) (f : A → B) (Aᵈ : A → Type) (Bᵈ : B → Type)
+  (fᵈ : (x : A) → Aᵈ x → Bᵈ (f x)) (s : vsurj A B f)
+  : Type
+  ≔ codata [
+| t .surj : (b : B) → Bᵈ b → Aᵈ (s .surj b)
+| t .surjeq
+  : (b : B) (b' : Bᵈ b)
+    → Br Bᵈ (s .surjeq b) (fᵈ (s .surj b) (t .surj b b')) b'
+| t .id.p
+  : (a0 : A.0) (a0' : Aᵈ.0 a0) (a1 : A.1) (a1' : Aᵈ.1 a1)
+    → vsurjᵈ (A.2 a0 a1) (B.2 (f.0 a0) (f.1 a1)) (a2 ↦ f.2 a2)
+        (a2 ↦ Aᵈ.2 a2 a0' a1') (b2 ↦ Bᵈ.2 b2 (fᵈ.0 a0 a0') (fᵈ.1 a1 a1'))
+        (a2 a2' ↦ fᵈ.2 a2 a2') (s.2 .id a0 a1) ]
+
+{` A displayed very-surjective map over a very-surjective one has a very-surjective Σ-map. `}
+def vsurjΣ (A B : Type) (f : A → B) (Aᵈ : A → Type) (Bᵈ : B → Type)
+  (fᵈ : (x : A) → Aᵈ x → Bᵈ (f x)) (s : vsurj A B f)
+  (sᵈ : vsurjᵈ A B f Aᵈ Bᵈ fᵈ s)
+  : vsurj (Σ A Aᵈ) (Σ B Bᵈ) (mapΣ A B f Aᵈ Bᵈ fᵈ)
+  ≔ [
+| .surj ↦ v ↦ (s .surj (v .fst), sᵈ .surj (v .fst) (v .snd))
+| .surjeq ↦ v ↦ (s .surjeq (v .fst), sᵈ .surjeq (v .fst) (v .snd))
+| .id.p ↦ u0 u1 ↦
+    vsurj_eqv
+      (Σ (A.2 (u0 .fst) (u1 .fst)) (a2 ↦ Aᵈ.2 a2 (u0 .snd) (u1 .snd)))
+      (Σ (B.2 (f.0 (u0 .fst)) (f.1 (u1 .fst)))
+         (b2 ↦
+          Bᵈ.2 b2 (fᵈ.0 (u0 .fst) (u0 .snd)) (fᵈ.1 (u1 .fst) (u1 .snd))))
+      (mapΣ (A.2 (u0 .fst) (u1 .fst)) (B.2 (f.0 (u0 .fst)) (f.1 (u1 .fst)))
+         (a2 ↦ f.2 {u0 .fst} {u1 .fst} a2)
+         (a2 ↦ Aᵈ.2 a2 (u0 .snd) (u1 .snd))
+         (b2 ↦
+          Bᵈ.2 b2 (fᵈ.0 (u0 .fst) (u0 .snd)) (fᵈ.1 (u1 .fst) (u1 .snd)))
+         (a2 a2' ↦ fᵈ.2 a2 a2')) (Σ⁽ᵖ⁾ A.2 Aᵈ.2 u0 u1)
+      (Σ⁽ᵖ⁾ B.2 Bᵈ.2 (mapΣ A.0 B.0 f.0 Aᵈ.0 Bᵈ.0 fᵈ.0 u0)
+         (mapΣ A.1 B.1 f.1 Aᵈ.1 Bᵈ.1 fᵈ.1 u1))
+      (a2 ↦ rel mapΣ A.2 B.2 f.2 Aᵈ.2 Bᵈ.2 fᵈ.2 a2)
+      (id_Σ_iso A.0 A.1 A.2 Aᵈ.0 Aᵈ.1 Aᵈ.2 (u0 .fst) (u1 .fst) (u0 .snd)
+         (u1 .snd))
+      (id_Σ_iso B.0 B.1 B.2 Bᵈ.0 Bᵈ.1 Bᵈ.2 (f.0 (u0 .fst)) (f.1 (u1 .fst))
+         (fᵈ.0 (u0 .fst) (u0 .snd)) (fᵈ.1 (u1 .fst) (u1 .snd))) (u2 ↦ rfl.)
+      (vsurjΣ (A.2 (u0 .fst) (u1 .fst))
+         (B.2 (f.0 (u0 .fst)) (f.1 (u1 .fst))) (a2 ↦ f.2 a2)
+         (a2 ↦ Aᵈ.2 a2 (u0 .snd) (u1 .snd))
+         (b2 ↦
+          Bᵈ.2 b2 (fᵈ.0 (u0 .fst) (u0 .snd)) (fᵈ.1 (u1 .fst) (u1 .snd)))
+         (a2 a2' ↦ fᵈ.2 a2 a2') (s .id (u0 .fst) (u1 .fst))
+         (sᵈ .id (u0 .fst) (u0 .snd) (u1 .fst) (u1 .snd)))]
+
+
+def vsurj_gel (A0 A1 : Type)
+  : vsurj (Br Type A0 A1) (A0 → A1 → Type) (A2 ↦ a0 a1 ↦ A2 a0 a1)
+  ≔ [
+| .surj ↦ A2 ↦ Gel A0 A1 A2
+| .surjeq ↦ A2 ↦ a0 a1 ⤇
+    Gel (Gel A0 A1 A2 a0.0 a1.0) (A2 a0.1 a1.1)
+      (a20 a21 ↦ Br A2 a0.2 a1.2 (a20 .ungel) a21)
+| .id.p ↦ A20 A21 ↦ [
+  | .surj ↦ A22 ↦
+      Gel2 A0.0 A0.1 A0.2 A1.0 A1.1 A1.2 A20 A21
+        (a00 a01 a02 a10 a11 a12 a20 a21 ↦ A22 a02 a12 a20 a21)
+  | .surjeq ↦ A22 ↦ a0 a1 ⤇
+      Gel2 (A20 a0.00 a1.00) (A20 a0.01 a1.01) (Br A20 a0.02 a1.02)
+        (A21 a0.10 a1.10) (A21 a0.11 a1.11) (Br A21 a0.12 a1.12)
+        (Gel2 A0.0 A0.1 A0.2 A1.0 A1.1 A1.2 A20 A21
+           (a00 a01 a02 a10 a11 a12 a20 a21 ↦ A22 a02 a12 a20 a21) a0.20
+           a1.20) (A22 a0.21 a1.21)
+        (a200 a201 a202 a210 a211 a212 a220 a221 ↦
+         Br A22 a0.22 a1.22 a202 a212 (a220 .ungel) a221)
+  | .id.p ↦ ¿ʔ]]
+
+`==========================================
 
 section genVsurj ≔
   axiom F : (A B : Type) (f : A → B) → Type
@@ -642,13 +724,152 @@ section gen𝕗Fib ≔
      v ≔ ¿ʔ)
 end
 
-` BrIsFib_eq (A₀ A₁ : Fib) : Br Fib A₀ A₁ ≅ BrFibUnfolded A₀ A₁
+def GelRoundTrip (A B : Type) (F : Br Type A B) (a : A) (b : B)
+  : Br Type (F a b) (Gel A B (x y ↦ F x y) a b)
+  ≔ Gel (F a b) (Gel A B (x y ↦ F x y) a b)
+      (f f' ↦ rel (F a b) f (f' .ungel))
+
+def Gel_iso_prim (A₀ A₁ : Type) (A₂ : A₀ → A₁ → Type) (a₀ : A₀) (a₁ : A₁)
+  : (A₂ a₀ a₁) ≅ (Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁)
+  ≔ (
+  to ≔ a₂ ↦ (ungel ≔ a₂),
+  fro ≔ a₂ ↦ a₂ .ungel,
+  fro_to ≔ _ ↦ rfl.,
+  to_fro ≔ _ ↦ rfl.,
+  to_fro_to ≔ _ ↦ rfl.)
+
+
 
 def Gel_iso (A₀ A₁ : Type) (A₂ : Br Type A₀ A₁) (a₀ : A₀) (a₁ : A₁)
-  : Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁ ≅ A₂ a₀ a₁
+  : (A₂ a₀ a₁) ≅ (Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁)
+  ≔ Gel_iso_prim A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁
+
+def Gel_iso_inv (A₀ A₁ : Type) (A₂ : Br Type A₀ A₁) (a₀ : A₀) (a₁ : A₁)
+  : (Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁) ≅ (A₂ a₀ a₁)
   ≔ (
   to ≔ a₂ ↦ a₂ .ungel,
   fro ≔ a₂ ↦ (ungel ≔ a₂),
   fro_to ≔ _ ↦ rfl.,
   to_fro ≔ _ ↦ rfl.,
   to_fro_to ≔ _ ↦ rfl.)
+
+
+
+def funExt (A : Type) (P : A → Type) (f g : (x : A) → P x)
+  : ((x : A) → Br (P x) (f x) (g x)) → Br ((x : A) → P x) f g
+  ≔ p ↦ x ⤇ ¿ʔ
+
+def vsurjFun (A : Type) (P Q : A → Type) (f : (a : A) → P a → Q a)
+  (fv : (a : A) → vsurj (P a) (Q a) (f a))
+  : vsurj ((x : A) → P x) ((x : A) → Q x) (g x ↦ f x (g x))
+  ≔ [
+| .surj ↦ g x ↦ fv x .surj (g x)
+| .surjeq ↦ g ↦
+    funExt A Q (x ↦ f x (fv x .surj (g x))) g (x ↦ fv x .surjeq (g x))
+| .id.p ↦ p0 p1 ↦
+    ¿vsurjFun (sig (fst : A.0, snd: A.1, thd : A.2 fst snd)) (x ↦ P.2 (x .2) (p0 (x .0)))ʔ]
+
+def P (A₀ A₁ : Fib) (A₂ : Br Type (A₀ .t) (A₁ .t)) : Type
+  ≔ Σ ((a₀ : A₀ .t) → (a₁ : A₁ .t) → isFibrant (A₂ a₀ a₁))
+      (A₂f ↦ BrFibRest A₀ A₁ A₂ A₂f)
+
+def fiblemma1 (A₀ A₁ : Fib) (A₂ : Br Type (A₀ .t) (A₁ .t))
+  : isFibrant (P A₀ A₁ A₂)
+  ≔ [
+| .trr.p ↦ ¿ʔ
+| .trl.p ↦ ¿ʔ
+| .liftr.p ↦ ¿ʔ
+| .liftl.p ↦ ¿ʔ
+| .id.p ↦ ¿ʔ]
+
+def vsurjd_fun (A₀ A₁ : Type) : Br Type A₀ A₁ → A₀ → A₁ → Type
+  ≔ A₂ ↦ a₀ a₁ ↦ A₂ a₀ a₁
+
+`def vsurjd_fund (A₀ A₁ : Type) (A₂: Br Type A₀ A₁) (R:A₀ → A₁→ Type) 
+
+`seems like we need coinductive extensionality to prove the following
+def isFibIso (A B : Type) : (A ≅ B) → (isFibrant A) ≅ (isFibrant B) ≔ e ↦ (
+  to ≔ 𝕗eqv A B e,
+  fro ≔ 𝕗eqv B A (inverse_eqv A B e),
+  fro_to ≔ Af ↦ ¿ʔ,
+  to_fro ≔ ¿ʔ,
+  to_fro_to ≔ ¿ʔ)
+
+def 𝕗eqv_inverse (A : Type) (B : Type) (e : A ≅ B) (𝕗B : isFibrant B)
+  : isFibrant A
+  ≔ [
+| .trr.p ↦ a0 ↦ e.1 .fro (𝕗B.2 .trr (e.0 .to a0))
+| .trl.p ↦ ¿ʔ
+| .liftr.p ↦ ¿ʔ
+| .liftl.p ↦ ¿ʔ
+| .id.p ↦ ¿ʔ]
+
+{` Fibrancy transports across equivalences. `}
+def 𝕗eqv (A B : Type) (e : A ≅ B) (𝕗A : isFibrant A) : isFibrant B ≔ [
+| .trr.p ↦ b0 ↦ e.1 .to (𝕗A.2 .trr (e.0 .fro b0))
+| .trl.p ↦ b1 ↦ e.0 .to (𝕗A.2 .trl (e.1 .fro b1))
+| .liftr.p ↦ b0 ↦
+    eq.trr B.0 (b ↦ B.2 b (e.1 .to (𝕗A.2 .trr (e.0 .fro b0))))
+      (e.0 .to (e.0 .fro b0)) b0 (e.0 .to_fro b0)
+      (e.2 .to (𝕗A.2 .liftr (e.0 .fro b0)))
+| .liftl.p ↦ b1 ↦
+    eq.trr B.1 (b ↦ B.2 (e.0 .to (𝕗A.2 .trl (e.1 .fro b1))) b)
+      (e.1 .to (e.1 .fro b1)) b1 (e.1 .to_fro b1)
+      (e.2 .to (𝕗A.2 .liftl (e.1 .fro b1)))
+| .id.p ↦ b0 b1 ↦
+    𝕗eqv (A.2 (e.0 .fro b0) (e.1 .fro b1)) (B.2 b0 b1)
+      (Id_eqv A.0 A.1 A.2 B.0 B.1 B.2 e.0 e.1 e.2 b0 b1)
+      (𝕗A.2 .id (e.0 .fro b0) (e.1 .fro b1))]
+
+def isFibIso (A₀ A₁ : Type) (A₂ : Br Type A₀ A₁) (a₀ : A₀) (a₁ : A₁)
+  : isFibrant (A₂ a₀ a₁) ≅ isFibrant (Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁)
+  ≔ (
+  to ≔
+    𝕗eqv (A₂ a₀ a₁) (Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁)
+      (Gel_iso A₀ A₁ A₂ a₀ a₁),
+  fro ≔
+    𝕗eqv (Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁) (A₂ a₀ a₁)
+      (Gel_iso_inv A₀ A₁ A₂ a₀ a₁),
+  fro_to ≔ f ↦ ¿rfl.ʔ,
+  to_fro ≔ ¿ʔ,
+  to_fro_to ≔ ¿ʔ)
+
+def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A) ≔ [
+| .trr.p ↦ x ↦ f.1
+| .trl.p ↦ x ↦ f.0
+| .liftr.p ↦ f₀ ↦ ¿ʔ
+| .liftl.p ↦ ¿ʔ
+| .id.p ↦ ¿ʔ]
+
+def vsurjd_lemma (A₀ A₁ : Type) (A₀f : isFibrant A₀) (A₁f : isFibrant A₁)
+  : vsurjᵈ (Br Type A₀ A₁) (A₀ → A₁ → Type) (A₂ ↦ a₀ a₁ ↦ A₂ a₀ a₁)
+      (A₂ ↦ (a₀ : A₀) → (a₁ : A₁) → isFibrant (A₂ a₀ a₁))
+      (R ↦ (a₀ : A₀) → (a₁ : A₁) → isFibrant ((Gel A₀ A₁ R) a₀ a₁))
+      (A₂ ↦ f ↦ a₀ a₁ ↦
+       𝕗eqv (A₂ a₀ a₁) (Gel A₀ A₁ (a₀′ a₁′ ↦ A₂ a₀′ a₁′) a₀ a₁)
+         (Gel_iso A₀ A₁ A₂ a₀ a₁) (f a₀ a₁)) (vsurj_gel A₀ A₁)
+  ≔ [
+| .surj ↦
+  R Rf a₀ a₁ ↦
+  `𝕗eqv (A₂ a₀ a₁) (Gel A₀ A₁ A₂ a₀ a₁) (Gel_iso_prim A₀ A₁ A₂ a₀ a₁)
+  (Rf a₀ a₁)
+| .surjeq ↦ R Rf ↦
+    let l
+      : (a₀ : A₀) → (a₁ : A₁) → isFibrant (isFibrant (Gel A₀ A₁ R a₀ a₁))
+      ≔ a₀ a₁ ↦ fiblemma (Gel A₀ A₁ R a₀ a₁) (Rf a₀ a₁) in
+    a₀ a₁ ⤇ ¿ʔ
+| .id.p ↦ ¿ʔ]
+
+
+
+def vsurjd_lemma1 (A B : Type) (f : A → B) (P : A → Type) (Q : B → Type) (fv : vsurj A B f)
+  (e : (y : B) → P (fv .surj y) ≅ Q y) 
+  : vsurjᵈ A B f P Q (a ↦ e (f a) .to) fv
+  ≔ [ .surj ↦ b q ↦ ¿ʔ | .surjeq ↦ ¿ʔ | .id.p ↦ ¿ʔ ]
+
+{`[
+| .surj ↦ A₂ f a₀ a₁ ↦ f a₀ a₁
+| .surjeq ↦ A₂ f ↦ p₀ p₁ ⤇ ¿ʔ
+| .id.p ↦ ¿ʔ]
+` BrIsFib_eq (A₀ A₁ : Fib) : Br Fib A₀ A₁ ≅ BrFibUnfolded A₀ A₁
+
