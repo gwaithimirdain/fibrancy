@@ -462,6 +462,7 @@ section gen𝕗Fib ≔
     P : (∂ .t → Fib) → Fib,
     f : X → Σ (∂ .t → Fib) (R ↦ P R .t),
     v : vsurj X (Σ (∂ .t → Fib) (R ↦ P R .t)) f )
+    ` TODO: replace vsurj by a finite composite of vsurj functions
   def trr (X₀ X₁ : Type) (X₂ : Br Type X₀ X₁) (f₀ : F X₀) (f₁ : F X₁)
     (f₂ : Br F X₂ f₀ f₁) (x₀ : X₀)
     : X₁
@@ -551,7 +552,7 @@ section gen𝕗Fib ≔
     let ∂₂ : Fib⁽ᵖ⁾ ∂₀ ∂₁ ≔ u₂ .∂ in
     let P₀ : (∂₀ .t → Fib) → Fib ≔ u₀ .P in
     let P₁ : (∂₁ .t → Fib) → Fib ≔ u₁ .P in
-    let P₂
+    let P₂'
       : {R₀ : ∂₀ .t → Fib} {R₁ : ∂₁ .t → Fib}
         (R₂
         : {𝑦₀ : ∂₀ .t} {𝑦₁ : ∂₁ .t} (𝑦₂ : ∂₂ .t 𝑦₀ 𝑦₁)
@@ -567,36 +568,46 @@ section gen𝕗Fib ≔
     let f₂
       : {𝑥₀ : X₀} {𝑥₁ : X₁} (𝑥₂ : X₂ 𝑥₀ 𝑥₁)
         →⁽ᵖ⁾ Σ⁽ᵖ⁾ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R ↦ P₀ R .t} {R ↦ P₁ R .t}
-               (R ⤇ P₂ R.2 .t) (f₀ 𝑥₀) (f₁ 𝑥₁)
+               (R ⤇ P₂' R.2 .t) (f₀ 𝑥₀) (f₁ 𝑥₁)
       ≔ u₂ .f in
-    let g
-      : (X₂ x₀ x₁)
-        → Σ⁽ᵖ⁾ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R ↦ P₀ R .t} {R ↦ P₁ R .t} (R ⤇ P₂ R.2 .t)
-            (R₀, p₀) (R₁, p₁)
-      ≔ x₂ ↦ f₂ {x₀} {x₁} x₂ in
     let v₀ : vsurj X₀ (Σ (∂₀ .t → Fib) (R ↦ P₀ R .t)) f₀ ≔ u₀ .v in
     let v₁ : vsurj X₁ (Σ (∂₁ .t → Fib) (R ↦ P₁ R .t)) f₁ ≔ u₁ .v in
     let v₂
       : vsurj⁽ᵖ⁾ X₂
           (Σ⁽ᵖ⁾ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R ↦ P₀ R .t} {R ↦ P₁ R .t}
-             (R ⤇ P₂ R.2 .t)) f₂ v₀ v₁
+             (R ⤇ P₂' R.2 .t)) f₂ v₀ v₁
       ≔ u₂ .v in
+    let P₂
+      : (R₂
+        : {𝑦₀ : ∂₀ .t} {𝑦₁ : ∂₁ .t} (𝑦₂ : ∂₂ .t 𝑦₀ 𝑦₁)
+          →⁽ᵖ⁾ Fib⁽ᵖ⁾ (R₀ 𝑦₀) (R₁ 𝑦₁))
+        → Fib⁽ᵖ⁾ (P₀ R₀) (P₁ R₁)
+      ≔ R₂ ↦ P₂' R₂ in
+    let g
+      : X₂ x₀ x₁
+        → Σ⁽ᵖ⁾ {∂₀ .t → Fib} {∂₁ .t → Fib} (rel (∂ ↦ ∂ .t → Fib) ∂₂)
+            {R ↦ P₀ R .t} {R ↦ P₁ R .t} ({R₀} {R₁} R₂ ↦ P₂' R₂ .t) (R₀, p₀)
+            (R₁, p₁)
+      ≔ x₂ ↦ f₂ {x₀} {x₁} x₂ in
+    let e
+      : Σ⁽ᵖ⁾ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R₀ ↦ P₀ R₀ .t} {R₁ ↦ P₁ R₁ .t}
+          (R ⤇ P₂' R.2 .t) (R₀, p₀) (R₁, p₁)
+        ≅ Σ
+            ((y₀ : ∂₀ .t) (y₁ : ∂₁ .t) (y₂ : ∂₂ .t y₀ y₁)
+             → Br Fib (R₀ y₀) (R₁ y₁))
+            (R₂ ↦ P₂ ({y₀} {y₁} y₂ ↦ R₂ y₀ y₁ y₂) .t p₀ p₁) ≔ (
+      to ≔ w ↦ (fst ≔ y₀ y₁ y₂ ↦ w .fst y₂, snd ≔ w .snd),
+      fro ≔ w ↦ (fst ≔ {y₀} {y₁} y₂ ↦ w .fst y₀ y₁ y₂, snd ≔ w .snd),
+      fro_to ≔ _ ↦ rfl.,
+      to_fro ≔ _ ↦ rfl.,
+      to_fro_to ≔ _ ↦ rfl.) in
     let vg
       : vsurj (X₂ x₀ x₁)
           (Σ⁽ᵖ⁾ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R ↦ P₀ R .t} {R ↦ P₁ R .t}
-             (R ⤇ P₂ R.2 .t) (R₀, p₀) (R₁, p₁)) g
+             (R ⤇ P₂' R.2 .t) (R₀, p₀) (R₁, p₁)) g
       ≔ v₂ .id.1 x₀ x₁ in
     (∂ ≔ Σ𝕗 ∂₀ (y₀ ↦ Σ𝕗 ∂₁ (y₁ ↦ to𝕗Rel ∂₀ ∂₁ ∂₂ y₀ y₁)),
      P ≔ ¿ʔ,
      f ≔ ¿ʔ,
      v ≔ ¿ʔ)
 end
-
-axiom A : Type
-
-def T : Type ≔ codata [ x .des.p : A ]
-
-axiom x : T
-
-echo rel (rel x) .des.1
-
