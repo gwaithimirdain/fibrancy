@@ -369,6 +369,9 @@ def comp_eqv (A B C : Type) (f : A ≅ B) (g : B ≅ C) : A ≅ C
          (eq.ap B C (g .to) (f .to (f .fro (g .fro c))) (g .fro c)
             (f .to_fro (g .fro c))) (g .to_fro c))
 
+def inverse_eqv (A B : Type) (f : A ≅ B) : B ≅ A
+  ≔ adjointify B A (f .fro) (f .to) (f .to_fro) (f .fro_to)
+
 def eqv_trr2 (A : Type) (B : Type) (P : A → B → Type) (a0 a1 : A)
   (a2 : eq A a0 a1) (b0 b1 : B) (b2 : eq B b0 b1)
   : P a0 b0 ≅ P a1 b1
