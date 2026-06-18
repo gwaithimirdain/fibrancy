@@ -419,6 +419,37 @@ def vsurj_Σ (A B : Type) (f : A → B) (v : vsurj A B f) (P : A → Fib)
            (a ⤇ Q.2 {a.0} {a.1} a.2 .t) (f.0 a₀) (f.1 a₁)
            (r.0 a₀ .f .trr p₀) (r.1 a₁ .f .trr p₁)) (ap₂ ↦ rfl.) res]
 
+def vsurj_gel (A0 A1 : Type)
+  : vsurj (Br Type A0 A1) (A0 → A1 → Type) (A2 ↦ a0 a1 ↦ A2 a0 a1)
+  ≔ [
+| .surj ↦ A2 ↦ Gel A0 A1 A2
+| .surjeq ↦ A2 ↦ a0 a1 ⤇
+    Gel (Gel A0 A1 A2 a0.0 a1.0) (A2 a0.1 a1.1)
+      (a20 a21 ↦ Br A2 a0.2 a1.2 (a20 .ungel) a21)
+| .id.p ↦ A20 A21 ↦ [
+  | .surj ↦ A22 ↦
+      Gel2 A0.0 A0.1 A0.2 A1.0 A1.1 A1.2 A20 A21
+        (a00 a01 a02 a10 a11 a12 a20 a21 ↦ A22 a02 a12 a20 a21)
+  | .surjeq ↦ A22 ↦ a0 a1 ⤇
+      Gel2 (A20 a0.00 a1.00) (A20 a0.01 a1.01) (Br A20 a0.02 a1.02)
+        (A21 a0.10 a1.10) (A21 a0.11 a1.11) (Br A21 a0.12 a1.12)
+        (Gel2 A0.0 A0.1 A0.2 A1.0 A1.1 A1.2 A20 A21
+           (a00 a01 a02 a10 a11 a12 a20 a21 ↦ A22 a02 a12 a20 a21) a0.20
+           a1.20) (A22 a0.21 a1.21)
+        (a200 a201 a202 a210 a211 a212 a220 a221 ↦
+         Br A22 a0.22 a1.22 a202 a212 (a220 .ungel) a221)
+  | .id.p ↦ ¿ʔ]]
+
+def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A)
+  ≔ ¿ʔ
+
+def vsurj_gel2 (A₀ A₁ : Type)
+  : vsurj
+      (Σ (Br Type A₀ A₁) (A₂ ↦ (a₀ : A₀) (a₁ : A₁) → isFibrant (A₂ a₀ a₁)))
+      (Σ (A₀ → A₁ → Type) (A₂ ↦ (a₀ : A₀) (a₁ : A₁) → isFibrant (A₂ a₀ a₁)))
+      (A₂f ↦ (fst ≔ a₀ a₁ ↦ A₂f .fst a₀ a₁, snd ≔ a₀ a₁ ↦ A₂f .snd a₀ a₁))
+  ≔ ¿vsurj_Σ (Br Type A₀ A₁) (A₀ → A₁ → Type) (A₂ ↦ a₀ a₁ ↦ A₂ a₀ a₁) (vsurj_gel A₀ A₁) (A₂ ↦ (a₀ : A₀) (a₁ : A₁) → (isFibrant (A₂ a₀ a₁) , fiblemma (A₂ a₀ a₁) ))  ʔ
+
 def BrFibUnfolded (A₀ A₁ : Fib) : Type ≔ sig (
   R : Br Type (A₀ .t) (A₁ .t),
   Rf : (a₀ : A₀ .t) (a₁ : A₁ .t) → isFibrant (R a₀ a₁),
@@ -578,9 +609,8 @@ section gen𝕗Fib ≔
              (R ⤇ P₂' R.2 .t)) f₂ v₀ v₁
       ≔ u₂ .v in
     let P₂
-      : (R₂
-        : {𝑦₀ : ∂₀ .t} {𝑦₁ : ∂₁ .t} (𝑦₂ : ∂₂ .t 𝑦₀ 𝑦₁)
-          →⁽ᵖ⁾ Fib⁽ᵖ⁾ (R₀ 𝑦₀) (R₁ 𝑦₁))
+      : ({𝑦₀ : ∂₀ .t} {𝑦₁ : ∂₁ .t} (𝑦₂ : ∂₂ .t 𝑦₀ 𝑦₁)
+         →⁽ᵖ⁾ Fib⁽ᵖ⁾ (R₀ 𝑦₀) (R₁ 𝑦₁))
         → Fib⁽ᵖ⁾ (P₀ R₀) (P₁ R₁)
       ≔ R₂ ↦ P₂' R₂ in
     let g
@@ -593,7 +623,7 @@ section gen𝕗Fib ≔
       : Σ⁽ᵖ⁾ (∂₂ .t ⇒ Fib⁽ᵖ⁾) {R₀ ↦ P₀ R₀ .t} {R₁ ↦ P₁ R₁ .t}
           (R ⤇ P₂' R.2 .t) (R₀, p₀) (R₁, p₁)
         ≅ Σ
-            ((y₀ : ∂₀ .t) (y₁ : ∂₁ .t) (y₂ : ∂₂ .t y₀ y₁)
+            ((y₀ : ∂₀ .t) (y₁ : ∂₁ .t) → ∂₂ .t y₀ y₁
              → Br Fib (R₀ y₀) (R₁ y₁))
             (R₂ ↦ P₂ ({y₀} {y₁} y₂ ↦ R₂ y₀ y₁ y₂) .t p₀ p₁) ≔ (
       to ≔ w ↦ (fst ≔ y₀ y₁ y₂ ↦ w .fst y₂, snd ≔ w .snd),
@@ -611,3 +641,14 @@ section gen𝕗Fib ≔
      f ≔ ¿ʔ,
      v ≔ ¿ʔ)
 end
+
+` BrIsFib_eq (A₀ A₁ : Fib) : Br Fib A₀ A₁ ≅ BrFibUnfolded A₀ A₁
+
+def Gel_iso (A₀ A₁ : Type) (A₂ : Br Type A₀ A₁) (a₀ : A₀) (a₁ : A₁)
+  : Gel A₀ A₁ (x₀ x₁ ↦ A₂ x₀ x₁) a₀ a₁ ≅ A₂ a₀ a₁
+  ≔ (
+  to ≔ a₂ ↦ a₂ .ungel,
+  fro ≔ a₂ ↦ (ungel ≔ a₂),
+  fro_to ≔ _ ↦ rfl.,
+  to_fro ≔ _ ↦ rfl.,
+  to_fro_to ≔ _ ↦ rfl.)
