@@ -522,8 +522,7 @@ def vsurj_gel (A0 A1 : Type)
          Br A22 a0.22 a1.22 a202 a212 (a220 .ungel) a221)
   | .id.p ↦ ¿ʔ]]
 
-def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A)
-  ≔ ¿ʔ
+def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A) ≔ ¿ʔ
 
 def vsurj_gel2 (A₀ A₁ : Type)
   : vsurj
@@ -844,6 +843,18 @@ def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A) ≔ [
 def vsurjd_lemma (A₀ A₁ : Type) (A₀f : isFibrant A₀) (A₁f : isFibrant A₁)
   : vsurjᵈ (Br Type A₀ A₁) (A₀ → A₁ → Type) (A₂ ↦ a₀ a₁ ↦ A₂ a₀ a₁)
       (A₂ ↦ (a₀ : A₀) → (a₁ : A₁) → isFibrant (A₂ a₀ a₁))
+      (R ↦ (a₀ : A₀) → (a₁ : A₁) → isFibrant (R a₀ a₁))
+      (A₂ ↦ f ↦ a₀ a₁ ↦ f a₀ a₁) (vsurj_gel A₀ A₁)
+  ≔ [
+| .surj ↦ R Rf a₀ a₁ ↦
+    𝕗eqv (R a₀ a₁) (Gel A₀ A₁ R a₀ a₁) (Gel_iso_prim A₀ A₁ R a₀ a₁)
+      (Rf a₀ a₁)
+| .surjeq ↦ R Rf ↦ a₀ a₁ ⤇ ¿ʔ
+| .id.p ↦ ¿ʔ]
+
+def vsurjd_lemma1 (A₀ A₁ : Type) (A₀f : isFibrant A₀) (A₁f : isFibrant A₁)
+  : vsurjᵈ (Br Type A₀ A₁) (A₀ → A₁ → Type) (A₂ ↦ a₀ a₁ ↦ A₂ a₀ a₁)
+      (A₂ ↦ (a₀ : A₀) → (a₁ : A₁) → isFibrant (A₂ a₀ a₁))
       (R ↦ (a₀ : A₀) → (a₁ : A₁) → isFibrant ((Gel A₀ A₁ R) a₀ a₁))
       (A₂ ↦ f ↦ a₀ a₁ ↦
        𝕗eqv (A₂ a₀ a₁) (Gel A₀ A₁ (a₀′ a₁′ ↦ A₂ a₀′ a₁′) a₀ a₁)
@@ -862,7 +873,7 @@ def vsurjd_lemma (A₀ A₁ : Type) (A₀f : isFibrant A₀) (A₁f : isFibrant 
 
 
 
-def vsurjd_lemma1 (A B : Type) (f : A → B) (P : A → Type) (Q : B → Type) (fv : vsurj A B f)
+def vsurjd_lemma2 (A B : Type) (f : A → B) (P : A → Type) (Q : B → Type) (fv : vsurj A B f)
   (e : (y : B) → P (fv .surj y) ≅ Q y) 
   : vsurjᵈ A B f P Q (a ↦ e (f a) .to) fv
   ≔ [ .surj ↦ b q ↦ ¿ʔ | .surjeq ↦ ¿ʔ | .id.p ↦ ¿ʔ ]
