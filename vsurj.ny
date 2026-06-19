@@ -201,7 +201,7 @@ def vsurjᵈ_glue (A0 A1 : Fib)
 | .surj ↦ A2t A2f ↦
     univalence_bisim A0 A1 (a0 a1 ↦ (A2t a0 a1, A2f .fst a0 a1)) (A2f .snd)
       .f
-| .surjeq ↦ ¿ʔ
+| .surjeq ↦ ¿
 | .id.p ↦ ¿ʔ]
 
 {` Given that claim, we can deduce that the map from Br-Fib to pointwise-fibrant bisimulations is very surjective. `}
