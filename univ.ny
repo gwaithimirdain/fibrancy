@@ -849,7 +849,79 @@ def vsurjd_lemma (A₀ A₁ : Type) (A₀f : isFibrant A₀) (A₁f : isFibrant 
 | .surj ↦ R Rf a₀ a₁ ↦
     𝕗eqv (R a₀ a₁) (Gel A₀ A₁ R a₀ a₁) (Gel_iso_prim A₀ A₁ R a₀ a₁)
       (Rf a₀ a₁)
-| .surjeq ↦ R Rf ↦ a₀ a₁ ⤇ ¿ʔ
+| .surjeq ↦ R Rf ↦ a₀ a₁ ⤇
+    pre_univalence
+      ((Gel A₀ A₁ R a₀.0 a₁.0),
+       𝕗eqv (R a₀.0 a₁.0) (Gel A₀ A₁ R a₀.0 a₁.0)
+         (Gel_iso_prim A₀ A₁ R a₀.0 a₁.0) (Rf a₀.0 a₁.0))
+      (R a₀.1 a₁.1, Rf a₀.1 a₁.1)
+      (Gel (Gel A₀ A₁ R a₀.0 a₁.0) (R a₀.1 a₁.1)
+         (a20 a21 ↦ Br R a₀.2 a₁.2 (a20 .ungel) a21))
+      (a₂₀ a₂₁ ↦
+       𝕗eqv (Br R a₀.2 a₁.2 (a₂₀ .ungel) a₂₁)
+         (Gel (Gel A₀ A₁ R a₀.0 a₁.0) (R a₀.1 a₁.1)
+            (a20 a21 ↦ Br R a₀.2 a₁.2 (a20 .ungel) a21) a₂₀ a₂₁)
+         (Gel_iso_prim (Gel A₀ A₁ R a₀.0 a₁.0) (R a₀.1 a₁.1)
+            (a20 a21 ↦ Br R a₀.2 a₁.2 (a20 .ungel) a21) a₂₀ a₂₁)
+         (rel Rf a₀.2 a₁.2 .id (a₂₀ .ungel) a₂₁))
+      (isbisim_eqv
+         (Gel A₀ A₁ R a₀.0 a₁.0,
+          𝕗eqv (R a₀.0 a₁.0) (Gel A₀ A₁ R a₀.0 a₁.0)
+            (Gel_iso_prim A₀ A₁ R a₀.0 a₁.0) (Rf a₀.0 a₁.0))
+         (R a₀.1 a₁.1, Rf a₀.1 a₁.1)
+         (x y ↦
+          (Br R a₀.2 a₁.2 (x .ungel) y, Br Rf a₀.2 a₁.2 .id (x .ungel) y))
+         (x y ↦
+          (Gel (Gel A₀ A₁ R a₀.0 a₁.0) (R a₀.1 a₁.1)
+             (a20 a21 ↦ Br R a₀.2 a₁.2 (a20 .ungel) a21) x y,
+           𝕗eqv (Br R a₀.2 a₁.2 (x .ungel) y)
+             (Gel (Gel A₀ A₁ R a₀.0 a₁.0) (R a₀.1 a₁.1)
+                (a20 a21 ↦ Br R a₀.2 a₁.2 (a20 .ungel) a21) x y)
+             (Gel_iso_prim (Gel A₀ A₁ R a₀.0 a₁.0) (R a₀.1 a₁.1)
+                (a20 a21 ↦ Br R a₀.2 a₁.2 (a20 .ungel) a21) x y)
+             (rel Rf a₀.2 a₁.2 .id (x .ungel) y)))
+         (Gel_iso_prim (Gel A₀ A₁ R a₀.0 a₁.0) (R a₀.1 a₁.1)
+            (a20 a21 ↦ Br R a₀.2 a₁.2 (a20 .ungel) a21))
+         (bisim_of_11
+            (Gel A₀ A₁ R a₀.0 a₁.0,
+             𝕗eqv (R a₀.0 a₁.0) (Gel A₀ A₁ R a₀.0 a₁.0)
+               (Gel_iso_prim A₀ A₁ R a₀.0 a₁.0) (Rf a₀.0 a₁.0))
+            (R a₀.1 a₁.1, Rf a₀.1 a₁.1)
+            (x y ↦
+             (Br R a₀.2 a₁.2 (x .ungel) y,
+              rel Rf a₀.2 a₁.2 .id (x .ungel) y))
+            (contrr ≔ a₂₀ ↦ (
+               center ≔ (
+                 Br Rf a₀.2 a₁.2 .trr (a₂₀ .ungel),
+                 Br Rf a₀.2 a₁.2 .liftr (a₂₀ .ungel)),
+               contract ≔ x ↦
+                 let a₂₁ ≔ x .fst in
+                 let a₂₂ ≔ x .snd in
+                 (fst ≔
+                    rel (Br Rf a₀.2 a₁.2)
+                      .id.2 a₂₂ (rel Rf a₀.2 a₁.2 .liftr (a₂₀ .ungel))
+                      .trr (rel (a₂₀ .ungel)),
+                  snd ≔
+                    sym
+                      (rel (Br Rf a₀.2 a₁.2)
+                       .id.2 a₂₂ (rel Rf a₀.2 a₁.2 .liftr (a₂₀ .ungel))
+                       .liftr (rel (a₂₀ .ungel))))),
+             contrl ≔ a₂₁ ↦ (
+               center ≔ (
+                 (Br Rf a₀.2 a₁.2 .trl a₂₁,),
+                 Br Rf a₀.2 a₁.2 .liftl a₂₁),
+               contract ≔ x ↦
+                 let a₂₀ ≔ x .fst in
+                 let a₂₂ ≔ x .snd in
+                 (fst ≔ (
+                    rel (Br Rf a₀.2 a₁.2)
+                      .id.2 a₂₂ (rel Rf a₀.2 a₁.2 .liftl a₂₁)
+                      .trl (rel a₂₁),),
+                  snd ≔
+                    sym
+                      (rel (Br Rf a₀.2 a₁.2)
+                       .id.2 a₂₂ (rel Rf a₀.2 a₁.2 .liftl a₂₁)
+                       .liftl (rel a₂₁)))))))
 | .id.p ↦ ¿ʔ]
 
 def vsurjd_lemma1 (A₀ A₁ : Type) (A₀f : isFibrant A₀) (A₁f : isFibrant A₁)
