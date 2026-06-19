@@ -60,6 +60,9 @@ def isFibHasConn (A : Type) : hasConn (isFibrant A) ≔ [
     fibHasConn (isFibrant⁽ᵖ⁾ A.2 f₀ f₁) (fiblemma2 A.0 f₀ A.1 f₁ A.2 f₂)]
 
 
+
+def BrisFib_fib (A₀ A₁:Type) (A₂:Br Type A₀ A₁) (f₀:isFibrant A₀) (f₁:isFibrant A₁) : isFibrant (Br isFibrant A₂ f₀ f₁)
+
 section parametrized ≔
 
   {` We can also consider higher destructors whose types depend on the parameters, but they have to depend on a degenerated version of the parameters.  In this case, however, it seems that we require the *parameter* to have connections. `}
