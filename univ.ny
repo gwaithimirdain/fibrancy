@@ -163,12 +163,26 @@ def vsurj_iso (A B : Type) (e : Br Type A B → A → B → Type) : Type
     → vsurj_iso (A.2 y₀ y₁) (B.2 z₀ z₁) (x₂ y₂ z₂ ↦ ¿ (rel x₂)ʔ) ]
 
 def vsurj_iso_gen (∂ : Type) (El : ∂ → Type) (P : ∂ → Type) (A : ∂)
-  (e : P A → El A → Type)
+  (e : P A → (El A → Type))
   : Type
   ≔ codata [
 | x .surj : (El A → Type) → P A
 | x .surjeq : (R : El A → Type) → (a : El A) → e (x .surj R) a ≅ R a
-| x .id.p : vsurj_iso_gen ¿Σ A₀ʔ ¿ʔ ¿ʔ ¿ʔ ¿ʔ ] 
+| x .id.p
+  : vsurj_iso_gen
+      sig (
+        A₀ : ∂.0,
+        A₁ : ∂.1,
+        A₂ : ∂.2 A₀ A₁,
+        P₀ : P.0 A₀,
+        P₁ : P.1 A₁ )
+      (w ↦
+       sig (
+         a₀ : El.0 (w .A₀),
+         a₁ : El.1 (w .A₁),
+         a₂ : El.2 (w .A₂) a₀ a₁,
+         p₀ : ¿e.0 (w .P₀) a₀ʔ,
+         p₁ : ¿e.1 (w .P₁) a₁ʔ )) ¿ʔ ¿ʔ ¿ʔ ] 
 
 axiom A : Type
 axiom B : Type
