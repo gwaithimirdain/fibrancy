@@ -446,7 +446,7 @@ def BrFibRest (A₀ A₁ : Fib) (A₂ : Br Type (A₀ .t) (A₁ .t))
                (A₁.2 .f .id a₀₁ a₁₁))
         ≔ fiblemma2 (A₀.2 .t a₀₀ a₁₀) (A₀.2 .f .id a₀₀ a₁₀)
             (A₁.2 .t a₀₁ a₁₁) (A₁.2 .f .id a₀₁ a₁₁) (sym A₂.2 a₀₂ a₁₂)
-            ¿ʔ in
+            ¿f.2ʔ in
       ¿ʔ
 
 {`{a₀₀ : A₀.0 .t} {a₀₁ : A₁.0 .t} (a₀₂ : A₂.0 a₀₀ a₀₁) {a₁₀ : A₀.1 .t}
