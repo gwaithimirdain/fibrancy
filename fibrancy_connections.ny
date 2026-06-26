@@ -57,11 +57,11 @@ def Br_hPropᵈ (A : Type) (P : A → Type) : Type ≔ codata [
     → Br_hPropᵈ (A.2 a₀ a₁) (a₂ ↦ P.2 a₂ p₀ p₁) ]
 
 
-def fib_hProp_lemma : bare_hPropᵈ Type isFibrant ≔ [
+def fib_hProp_lemma : Br_hPropᵈ Type isFibrant ≔ [
 | .relate_l.p ↦ A₀ A₁ f₀ f f₁ A₂ f₂ ↦ fibProp_l A₀ A₁ A₂ f₀ f f₁ f₂
 | .relate_r.p ↦ A₀ A₁ f₀ f f₁ A₂ f₂ ↦ fibProp_r A₀ A₁ A₂ f₀ f f₁ f₂
 | .id.p ↦ A₀ A₁ f₀ f₁ ↦ [
-  | .relate_l.p ↦ A₂₀ A₂₁ f₂₀ f₂ f₂₁ A₂₂ f₂₂ ↦ ¿rel fibProp_lʔ
+  | .relate_l.p ↦ A₂₀ A₂₁ f₂₀ f₂ f₂₁ A₂₂ f₂₂ ↦ ¿ʔ
   | .relate_r.p ↦ ¿ʔ
   | .id.p ↦ ¿ʔ]]
 
@@ -69,7 +69,7 @@ def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A) ≔ [
 | .trr.p ↦ x ↦ f.1
 | .trl.p ↦ x ↦ f.0
 | .liftr.p ↦ f₀ ↦ fibProp_l A.0 A.1 A.2 f.0 f₀ f.1 f.2
-| .liftl.p ↦ f₁ ↦ fibProp_r A.0 A.1 A.2 f.0 f.1 f₁ f.2
+| .liftl.p ↦ f₁ ↦ fibProp_r A.0 A.1 A.2 f.0 f₁ f.1 f.2
 | .id.p ↦ f₀ f₁ ↦
     let l : (x₀ : A.0) → (x₁ : A.1) → isFibrant (isFibrant (A.2 x₀ x₁))
       ≔ x₀ x₁ ↦ fiblemma (A.2 x₀ x₁) (f.2 .id x₀ x₁) in
