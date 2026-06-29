@@ -105,6 +105,12 @@ def has≅× (A : Type) (iA : has≅ A) (B : Type) (iB : has≅ B) : has≅ (A �
       (has≅× (A.2 (u0 .0) (u1 .0)) (iA.2 .id (u0 .0) (u1 .0))
          (B.2 (u0 .1) (u1 .1)) (iB.2 .id (u0 .1) (u1 .1)))]
 
+{` Pointwise isomorphism implies bridges `}
+
+def Br_≅fam (B : Type) (P Q : B → Type) (e : has≅_fam B .iso P Q)
+  : Br (B → Type) P Q
+  ≔ b ⤇ Gel (P b.0) (Q b.1) (p q ↦ rel Q b.2 (e b.0 .to p) q)
+
 {` A dependent notion of "isomorphism over isomorphism" `}
 
 def has≅ᵈ (A : Type) (iA : has≅ A) (Aᵈ : A → Type) : Type ≔ codata [
