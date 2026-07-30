@@ -1,11 +1,5 @@
 {` -*- narya-prog-args: ("-proofgeneral" "-parametric" "-direction" "p,rel,Br" "-discrete-coreflector") -*- `}
 
-{`
-======================================================================
-   NB: This file requires the development 'modal' branch of Narya!
-======================================================================
-`}
-
 import "bookhott"
 import "isfibrant"
 import "hott_bookhott"
