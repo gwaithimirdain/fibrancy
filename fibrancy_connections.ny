@@ -7,47 +7,6 @@ import "fibrant_types"
 import "homotopy"
 import "univalence"
 
-def fibProp_l (A₀ A₁ : Type) (A₂ : Br Type A₀ A₁) (f₀ f : isFibrant A₀)
-  (f₁ : isFibrant A₁) (f₂ : Br (isFibrant) A₂ f₀ f₁)
-  : Br (isFibrant) A₂ f f₁
-  ≔ [
-| .trr.p ⤇ a₂ ⤇
-    rel (f₂.1 .id) {f.2 .trr a₂.0} {f₀.2 .trr a₂.0}
-        (rel f₀.2
-         .id.2 (f.2 .liftr a₂.0) (f₀.2 .liftr a₂.0)
-         .trr (rel a₂.0)) (rel (f₁.2 .trr a₂.1))
-      .trl (f₂.2 .trr.2 a₂.2)
-| .trr.1 ⤇ f₂ .trr
-| .trl.p ⤇ ¿ʔ
-| .trl.1 ⤇ ¿ʔ
-| .liftr.p ⤇ ¿ʔ
-| .liftr.1 ⤇ ¿ʔ
-| .liftl.p ⤇ ¿ʔ
-| .liftl.1 ⤇ ¿ʔ
-| .id.p ⤇ a₀ a₁ ⤇
-    fibProp_l (A₀.2 a₀.0 a₁.0) (A₁.2 a₀.1 a₁.1) (sym A₂.2 a₀.2 a₁.2)
-      (f₀.2 .id a₀.0 a₁.0) (f.2 .id a₀.0 a₁.0) (f₁.2 .id a₀.1 a₁.1)
-      ((f₂.2) .id.2 a₀.2 a₁.2)
-| .id.1 ⤇ ¿ʔ]
-
-def fibProp_r (A₀ A₁ : Type) (A₂ : Br Type A₀ A₁) (f₀ : isFibrant A₀)
-  (f f₁ : isFibrant A₁) (f₂ : Br (isFibrant) A₂ f₀ f₁)
-  : Br (isFibrant) A₂ f₀ f
-  ≔ [
-| .trr.p ⤇ ¿ʔ
-| .trr.1 ⤇ ¿ʔ
-| .trl.p ⤇ ¿ʔ
-| .trl.1 ⤇ ¿ʔ
-| .liftr.p ⤇ ¿ʔ
-| .liftr.1 ⤇ ¿ʔ
-| .liftl.p ⤇ ¿ʔ
-| .liftl.1 ⤇ ¿ʔ
-| .id.p ⤇ a₀ a₁ ⤇ ¿ʔ
-{`fibProp_r (A₀.2 a₀.0 a₁.0) (A₁.2 a₀.1 a₁.1) (sym A₂.2 a₀.2 a₁.2)
-(f₀.2 .id a₀.0 a₁.0) (f.2 .id a₀.0 a₁.0) (f₁.2 .id a₀.1 a₁.1)
-((f₂.2) .id.2 a₀.2 a₁.2)`}
-| .id.1 ⤇ ¿ʔ]
-
 def Br_hPropᵈ (A : Type) (P : A → Type) : Type ≔ codata [
 | x .relate_l.p
   : (a₀ : A.0) → (a₁ : A.1) → (p₀ p : P.0 a₀) → (p₁ : P.1 a₁)
@@ -60,27 +19,6 @@ def Br_hPropᵈ (A : Type) (P : A → Type) : Type ≔ codata [
 | x .id.p
   : (a₀ : A.0) → (a₁ : A.1) → (p₀ : P.0 a₀) → (p₁ : P.1 a₁)
     → Br_hPropᵈ (A.2 a₀ a₁) (a₂ ↦ P.2 a₂ p₀ p₁) ]
-
-
-def fib_hProp_lemma : Br_hPropᵈ Type isFibrant ≔ [
-| .relate_l.p ↦ A₀ A₁ f₀ f f₁ A₂ f₂ ↦ fibProp_l A₀ A₁ A₂ f₀ f f₁ f₂
-| .relate_r.p ↦ A₀ A₁ f₀ f f₁ A₂ f₂ ↦ fibProp_r A₀ A₁ A₂ f₀ f f₁ f₂
-| .id.p ↦ A₀ A₁ f₀ f₁ ↦ [
-  | .relate_l.p ↦ A₂₀ A₂₁ f₂₀ f₂ f₂₁ A₂₂ f₂₂ ↦ ¿ʔ
-  | .relate_r.p ↦ ¿ʔ
-  | .id.p ↦ ¿ʔ]]
-
-def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A) ≔ [
-| .trr.p ↦ x ↦ f.1
-| .trl.p ↦ x ↦ f.0
-| .liftr.p ↦ f₀ ↦ fibProp_l A.0 A.1 A.2 f.0 f₀ f.1 f.2
-| .liftl.p ↦ f₁ ↦ fibProp_r A.0 A.1 A.2 f.0 f₁ f.1 f.2
-| .id.p ↦ f₀ f₁ ↦
-    let l : (x₀ : A.0) → (x₁ : A.1) → isFibrant (isFibrant (A.2 x₀ x₁))
-      ≔ x₀ x₁ ↦ fiblemma (A.2 x₀ x₁) (f.2 .id x₀ x₁) in
-    ¿ʔ
-{`Warning : using (rel fiblemma A.2 f.2 .id f₀ f₁) to fill this is non-productive`}
-]
 
 def Br_hPropᵈ_lemma (A : Type) (P : A → Type) (bP : Br_hPropᵈ A P) (a : A)
   (p : P a)
@@ -96,10 +34,95 @@ def Br_hPropᵈ_lemma (A : Type) (P : A → Type) (bP : Br_hPropᵈ A P) (a : A)
       (bP.2 .relate_r a.0 a.1 p0 p1 p.1 a.2
          (bP.2 .relate_l a.0 a.1 p.0 p0 p.1 a.2 p.2))]
 
+
+def fibProp_l (A₀ A₁ : Type) (A₂ : Br Type A₀ A₁) (f₀ f : isFibrant A₀)
+  (f₁ : isFibrant A₁) (f₂ : Br (isFibrant) A₂ f₀ f₁)
+  : Br (isFibrant) A₂ f f₁
+  ≔ [
+| .trr.p ⤇ a ⤇ f₂.2 .id.1 (f.2 .liftr a.0) (f₁.2 .liftr a.1) .trr a.2
+
+| .trr.1 ⤇ f₂ .trr
+| .trl.p ⤇ a ⤇ f₂.2 .id.1 (f.2 .liftl a.0) (f₁.2 .liftl a.1) .trl a.2
+
+| .trl.1 ⤇ f₂ .trl
+| .liftr.p ⤇ a ⤇
+    sym (f₂.2 .id.1 (f.2 .liftr a.0) (f₁.2 .liftr a.1) .liftr a.2)
+| .liftr.1 ⤇ f₂ .liftr
+| .liftl.p ⤇ a ⤇
+    sym (f₂.2 .id.1 (f.2 .liftl a.0) (f₁.2 .liftl a.1) .liftl a.2)
+| .liftl.1 ⤇ f₂ .liftl
+| .id.p ⤇ a₀ a₁ ⤇
+    fibProp_l (A₀.2 a₀.0 a₁.0) (A₁.2 a₀.1 a₁.1) (sym A₂.2 a₀.2 a₁.2)
+      (f₀.2 .id a₀.0 a₁.0) (f.2 .id a₀.0 a₁.0) (f₁.2 .id a₀.1 a₁.1)
+      ((f₂.2) .id.2 a₀.2 a₁.2)
+| .id.1 ⤇ f₂ .id]
+
+`Alternate (Mike's) construction of trr.p for fibProp_l
+{`rel (f₂.1 .id) {f.2 .trr a.0} {f₀.2 .trr a.0}
+(rel f₀.2 .id.2 (f.2 .liftr a.0) (f₀.2 .liftr a.0) .trr (rel a.0))
+(rel (f₁.2 .trr a.1))
+.trl (f₂.2 .trr.2 a.2)`}
+
+`Alternate (Mike's) construction of trl.p for fibProp_l
+{`rel (f₂.0 .id) {f.2 .trl a.0} {f₀.2 .trl a.0}
+(rel f₀.2 .id.2 (f.2 .liftl a.0) (f₀.2 .liftl a.0) .trl (rel a.0))
+(rel (f₁.2 .trl a.1))
+.trl (f₂.2 .trl.2 a.2)`}
+
+
+def fibProp_r (A₀ A₁ : Type) (A₂ : Br Type A₀ A₁) (f₀ : isFibrant A₀)
+  (f f₁ : isFibrant A₁) (f₂ : Br (isFibrant) A₂ f₀ f₁)
+  : Br (isFibrant) A₂ f₀ f
+  ≔ [
+| .trr.p ⤇ a ⤇ f₂.2 .id.1 (f₀.2 .liftr a.0) (f.2 .liftr a.1) .trr a.2
+| .trr.1 ⤇ f₂ .trr
+| .trl.p ⤇ a ⤇ f₂.2 .id.1 (f₀.2 .liftl a.0) (f.2 .liftl a.1) .trl a.2
+| .trl.1 ⤇ f₂ .trl
+| .liftr.p ⤇ a ⤇
+    sym (f₂.2 .id.1 (f₀.2 .liftr a.0) (f.2 .liftr a.1) .liftr a.2)
+| .liftr.1 ⤇ f₂ .liftr
+| .liftl.p ⤇ a ⤇
+    sym (f₂.2 .id.1 (f₀.2 .liftl a.0) (f.2 .liftl a.1) .liftl a.2)
+| .liftl.1 ⤇ f₂ .liftl
+| .id.p ⤇ a a' ⤇
+    fibProp_r (A₀.2 a.0 a'.0) (A₁.2 a.1 a'.1) (sym A₂.2 a.2 a'.2)
+      (f₀.2 .id a.0 a'.0) (f.2 .id a.1 a'.1) (f₁.2 .id a.1 a'.1)
+      (f₂.2 .id.2 a.2 a'.2)
+| .id.1 ⤇ f₂ .id]
+
+`An application of fibProp_l: two proofs of isFibrant(A) are always related 
+def fibProp_rel (A : Type) (f f₀ : isFibrant A)
+  : Br (isFibrant) (rel A) f f₀
+  ≔ fibProp_l A A (rel A) f₀ f f₀ (rel f₀)
+
+
+
+def fib_hProp_lemma : Br_hPropᵈ Type isFibrant ≔ [
+| .relate_l.p ↦ A₀ A₁ f₀ f f₁ A₂ f₂ ↦ fibProp_l A₀ A₁ A₂ f₀ f f₁ f₂
+| .relate_r.p ↦ A₀ A₁ f₀ f f₁ A₂ f₂ ↦ fibProp_r A₀ A₁ A₂ f₀ f f₁ f₂
+| .id.p ↦ A₀ A₁ f₀ f₁ ↦ [
+  | .relate_l.p ↦ A₂₀ A₂₁ f₂₀ f f₂₁ A₂₂ f₂₂ ↦ ¿ʔ
+  | .relate_r.p ↦ ¿ʔ
+  | .id.p ↦ ¿ʔ]]
+
+
+def fibProp_ll (A₀₀ A₀₁ A₁₀ A₁₁ : Type)  : isFibrant⁽ᵖᵖ⁾ A₂₂ f₀₂ f₁₂ f f₂₁
+
+{`[
+| .relate_l.p ↦ A₂₀ A₂₁ f₂₀ f₂ f₂₁ A₂₂ f₂₂ ↦ ¿ʔ
+| .relate_r.p ↦ ¿ʔ
+| .id.p ↦ ¿ʔ]`}
+
+
+
+
 def Br_hPropᵈ_fib : Br_hPropᵈ Type isFibrant ≔ [
 | .relate_l.p ↦ A₀ A₁ f₀ f f₁ A₂ f₂ ↦ fibProp_l A₀ A₁ A₂ f₀ f f₁ f₂
 | .relate_r.p ↦ A₀ A₁ f₀ f f₁ A₂ f₂ ↦ fibProp_r A₀ A₁ A₂ f₀ f f₁ f₂
 | .id.p ↦ A₀ A₁ f₀ f₁ ↦ ¿ʔ]
+
+def fiblemma (A : Type) (f : isFibrant A) : isFibrant (isFibrant A)
+  ≔ Br_hPropᵈ_lemma Type isFibrant Br_hPropᵈ_fib A f
 
 def fiblemma2 (A₀ : Type) (f₀ : isFibrant A₀) (A₁ : Type)
   (f₁ : isFibrant A₁) (A₂ : Br Type A₀ A₁)
