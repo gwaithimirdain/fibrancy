@@ -106,8 +106,31 @@ def fib_hProp_lemma : Br_hPropᵈ Type isFibrant ≔ [
   | .id.p ↦ ¿ʔ]]
 
 
-def fibProp_ll (A₀₀ A₀₁ A₁₀ A₁₁ : Type)  : isFibrant⁽ᵖᵖ⁾ A₂₂ f₀₂ f₁₂ f f₂₁
-
+def fibProp_ll (A₀₀ A₀₁ : Type) (A₀₂ : Type⁽ᵖ⁾ A₀₀ A₀₁) (A₁₀ A₁₁ : Type)
+  (A₁₂ : Type⁽ᵖ⁾ A₁₀ A₁₁) (f₀₀ : isFibrant A₀₀) (f₀₁ : isFibrant A₀₁)
+  (f₀₂ : isFibrant⁽ᵖ⁾ A₀₂ f₀₀ f₀₁) (f₁₀ : isFibrant A₁₀)
+  (f₁₁ : isFibrant A₁₁) (f₁₂ : isFibrant⁽ᵖ⁾ A₁₂ f₁₀ f₁₁)
+  (A₂₀ : Type⁽ᵖ⁾ A₀₀ A₁₀) (A₂₁ : Type⁽ᵖ⁾ A₀₁ A₁₁)
+  (f₂₀ : isFibrant⁽ᵖ⁾ A₂₀ f₀₀ f₁₀) (f : isFibrant⁽ᵖ⁾ A₂₀ f₀₀ f₁₀)
+  (f₂₁ : isFibrant⁽ᵖ⁾ A₂₁ f₀₁ f₁₁) (A₂₂ : Type⁽ᵖᵖ⁾ A₀₂ A₁₂ A₂₀ A₂₁)
+  (f₂₂ : isFibrant⁽ᵖᵖ⁾ A₂₂ f₀₂ f₁₂ f₂₀ f₂₁)
+  : isFibrant⁽ᵖᵖ⁾ A₂₂ f₀₂ f₁₂ f f₂₁
+  ≔ [
+| .trr.p ⤇ a ⤇ ¿f₂₂.2 .id.1ʔ
+| .trr.1 ⤇ ¿f₂₂ .trr.1ʔ
+| .trr.2 ⤇ f₂₂ .trr.2
+| .trl.p ⤇ ¿ʔ
+| .trl.1 ⤇ ¿ʔ
+| .trl.2 ⤇ ¿ʔ
+| .liftr.p ⤇ ¿ʔ
+| .liftr.1 ⤇ ¿ʔ
+| .liftr.2 ⤇ ¿ʔ
+| .liftl.p ⤇ ¿ʔ
+| .liftl.1 ⤇ ¿ʔ
+| .liftl.2 ⤇ ¿ʔ
+| .id.p ⤇ ¿ʔ
+| .id.1 ⤇ ¿ʔ
+| .id.2 ⤇ ¿ʔ]
 {`[
 | .relate_l.p ↦ A₂₀ A₂₁ f₂₀ f₂ f₂₁ A₂₂ f₂₂ ↦ ¿ʔ
 | .relate_r.p ↦ ¿ʔ
