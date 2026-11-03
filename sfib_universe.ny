@@ -119,9 +119,7 @@ def Br_fib_prop (A : SFib) (v : Br_base A) (x y : Br_fib A v)
       (eqd_prop (isStrongFibrant (v .fst))
          (f ↦ Br isStrongFibrant (v .snd) (A .f) f) (x .fst) (y .fst)
          (sfib_prop (v .fst) (x .fst) (y .fst)) (x .snd) (y .snd)
-         (rel Br_sPropᵈ_sfib
-          .id (A .t) (v .fst) (A .f) (y .fst)
-          .prop (v .snd)))
+         (rel Br_sProp_sfib (v .snd) .id (A .f) (y .fst) .prop))
 
 {` The Type part of a bridge out of A is strictly equal to (A .t, rel (A .t)):
 bisimulation, equivalence induction, Gel_η. `}
@@ -189,9 +187,7 @@ def Br_fibl_prop (B : SFib) (v : Br_basel B) (x y : Br_fibl B v)
       (eqd_prop (isStrongFibrant (v .fst))
          (f ↦ Br isStrongFibrant (v .snd) f (B .f)) (x .fst) (y .fst)
          (sfib_prop (v .fst) (x .fst) (y .fst)) (x .snd) (y .snd)
-         (rel Br_sPropᵈ_sfib
-          .id (v .fst) (B .t) (y .fst) (B .f)
-          .prop (v .snd)))
+         (rel Br_sProp_sfib (v .snd) .id (y .fst) (B .f) .prop))
 
 {` Mirror image of Br_base_eq, inducting on B .t ≅ At. `}
 def Br_basel_eq (B : SFib) (At : Type) (X : Br Type At (B .t))
