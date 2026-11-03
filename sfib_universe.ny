@@ -6,95 +6,8 @@ import "hott_bookhott"
 import "fibrant_types"
 import "isstrongfibrant"
 import "sfib_types"
-import "sfib_prop"
 import "sfib_axioms"
-
-{` Transport along the first projection of an equality in a total space recovers
-the second component. `}
-def ap_fst_trr (Q : Type) (F : Q → Type) (w u : Σ Q F) (s : eq (Σ Q F) w u)
-  : eq (F (u .fst))
-      (eq.trr Q F (w .fst) (u .fst) (eq.ap (Σ Q F) Q (v ↦ v .fst) w u s)
-         (w .snd)) (u .snd)
-  ≔ match s [ rfl. ↦ rfl. ]
-
-{` The path from the center to any point, routed through the center's own
-contraction. `}
-def contr_singl (Q : Type) (F : Q → Type) (c : eq.iscontr (Σ Q F))
-  (u : Σ Q F)
-  : eq (Σ Q F) (c .center) u
-  ≔ eq.cat (Σ Q F) (c .center) (c .center) u (c .contract (c .center))
-      (eq.inv (Σ Q F) u (c .center) (c .contract u))
-
-{` In a contractible total space, a point of a fiber gives a path from the base
-of the center. `}
-def fiber_to_eq (Q : Type) (F : Q → Type) (c : eq.iscontr (Σ Q F)) (b : Q)
-  (r : F b)
-  : eq Q (c .center .fst) b
-  ≔ eq.ap (Σ Q F) Q (v ↦ v .fst) (c .center) (b, r)
-      (contr_singl Q F c (b, r))
-
-{` Conversely, a path from the base of the center gives a point of the fiber, by
-transport. `}
-def eq_to_fiber (Q : Type) (F : Q → Type) (c : eq.iscontr (Σ Q F)) (b : Q)
-  (e : eq Q (c .center .fst) b)
-  : F b
-  ≔ eq.trr Q F (c .center .fst) b e (c .center .snd)
-
-{` Round trip on fibers. `}
-def fiber_fro_to (Q : Type) (F : Q → Type) (c : eq.iscontr (Σ Q F)) (b : Q)
-  (r : F b)
-  : eq (F b) (eq_to_fiber Q F c b (fiber_to_eq Q F c b r)) r
-  ≔ ap_fst_trr Q F (c .center) (b, r) (contr_singl Q F c (b, r))
-
-{` Round trip on paths. `}
-def fiber_to_fro (Q : Type) (F : Q → Type) (c : eq.iscontr (Σ Q F)) (b : Q)
-  (e : eq Q (c .center .fst) b)
-  : eq (eq Q (c .center .fst) b)
-      (fiber_to_eq Q F c b (eq_to_fiber Q F c b e)) e
-  ≔ match e [
-| rfl. ↦
-    eq.ap_cat_inv (Σ Q F) Q (v ↦ v .fst) (c .center) (c .center)
-      (c .contract (c .center))]
-
-{` The fibers of a contractible total space are the based path spaces at the
-center. `}
-def fiber_eqv (Q : Type) (F : Q → Type) (c : eq.iscontr (Σ Q F)) (b : Q)
-  : F b ≅ eq Q (c .center .fst) b
-  ≔ adjointify (F b) (eq Q (c .center .fst) b) (fiber_to_eq Q F c b)
-      (eq_to_fiber Q F c b) (fiber_fro_to Q F c b) (fiber_to_fro Q F c b)
-
-{` A correspondence whose fibers in both directions have contractible total
-spaces is an equivalence (level 0 of a strong bisimulation). `}
-def corr_to_eqv (P Q : Type) (R : P → Q → Type)
-  (cr : (p : P) → eq.iscontr (Σ Q (q ↦ R p q)))
-  (cl : (q : Q) → eq.iscontr (Σ P (p ↦ R p q)))
-  : P ≅ Q
-  ≔ adjointify P Q (p ↦ cr p .center .fst) (q ↦ cl q .center .fst)
-      (p ↦
-       eq.inv P p (cl (cr p .center .fst) .center .fst)
-         (eq.ap (Σ P (p' ↦ R p' (cr p .center .fst))) P (v ↦ v .fst)
-            (p, cr p .center .snd) (cl (cr p .center .fst) .center)
-            (cl (cr p .center .fst) .contract (p, cr p .center .snd))))
-      (q ↦
-       eq.inv Q q (cr (cl q .center .fst) .center .fst)
-         (eq.ap (Σ Q (q' ↦ R (cl q .center .fst) q')) Q (v ↦ v .fst)
-            (q, cl q .center .snd) (cr (cl q .center .fst) .center)
-            (cr (cl q .center .fst) .contract (q, cl q .center .snd))))
-
-{` A dependent equality into a strict proposition. `}
-def eqd_prop (X : Type) (F : X → Type) (x c : X) (e : eq X x c) (y : F x)
-  (z : F c) (h : (u v : F c) → eq (F c) u v)
-  : eqd X F x c e y z
-  ≔ match e [ rfl. ↦ h y z ]
-
-{` Equalities in a Σ-type over a family of strict propositions come from
-equalities in the base. `}
-def Σ_prop_eq (V : Type) (Q : V → Type)
-  (hQ : (v : V) (x y : Q v) → eq (Q v) x y) (v w : V) (e : eq V v w)
-  (x : Q v) (y : Q w)
-  : eq (Σ V Q) (v, x) (w, y)
-  ≔ ap2d V Q (Σ V Q) (v x ↦ (v, x)) v w e x y
-      (eqd_prop V Q v w e x y (hQ w))
+import "sfib_eq_lemmas"
 
 {` The Type part of a bridge in SFib out of A. `}
 def Br_base (A : SFib) : Type ≔ Σ Type (Y ↦ Br Type (A .t) Y)
@@ -108,8 +21,27 @@ def reassoc (A : SFib) (w : Σ (Br_base A) (Br_fib A))
   : Σ SFib (B ↦ Br SFib A B)
   ≔ ((w .fst .fst, w .snd .fst), (w .fst .snd, w .snd .snd))
 
-{` The strong-fibrancy part is a strict proposition (sfib_prop and its
-degeneracy). `}
+{` Bridges in a pointwise strict proposition are strictly unique. `}
+def prop_Br (P₀ P₁ : Type) (P₂ : Br Type P₀ P₁)
+  (h₀ : (p q : P₀) → eq P₀ p q) (h₁ : (p q : P₁) → eq P₁ p q)
+  (h₂ : (p₀ q₀ : P₀) (p₁ q₁ : P₁) (p₂ : P₂ p₀ p₁) (q₂ : P₂ q₀ q₁)
+        → Br eq P₂ p₂ q₂ (h₀ p₀ q₀) (h₁ p₁ q₁)) (p₀ : P₀) (p₁ : P₁)
+  (x y : P₂ p₀ p₁)
+  : eq (P₂ p₀ p₁) x y
+  ≔
+  let ℓ₀ ≔ h₀ p₀ p₀ in
+  let ℓ₁ ≔ h₁ p₁ p₁ in
+  let tr : P₂ p₀ p₁ → P₂ p₀ p₁
+    ≔ z ↦ eq.trr2 P₀ P₁ (u v ↦ P₂ u v) p₀ p₀ ℓ₀ p₁ p₁ ℓ₁ z in
+  let ie : (z w : P₂ p₀ p₁) → eq (P₂ p₀ p₁) (tr z) w
+    ≔ z w ↦ Id_eq P₀ P₁ P₂ p₀ p₁ z p₀ p₁ w ℓ₀ ℓ₁ (h₂ p₀ p₀ p₁ p₁ z w) in
+  eq.trr2_inj P₀ P₁ (u v ↦ P₂ u v) p₀ p₀ ℓ₀ p₁ p₁ ℓ₁ x y
+    (eq.cat (P₂ p₀ p₁) (tr x) y (tr y) (ie x y)
+       (eq.inv (P₂ p₀ p₁) (tr y) y (ie y y)))
+
+{` The strong-fibrancy part is a strict proposition: sfib_prop for the
+fibrancy of B, and prop_Br applied to the degeneracy rel sfib_prop for the
+bridge of fibrancies. `}
 def Br_fib_prop (A : SFib) (v : Br_base A) (x y : Br_fib A v)
   : eq (Br_fib A v) x y
   ≔ ap2d (isStrongFibrant (v .fst))
@@ -119,7 +51,11 @@ def Br_fib_prop (A : SFib) (v : Br_base A) (x y : Br_fib A v)
       (eqd_prop (isStrongFibrant (v .fst))
          (f ↦ Br isStrongFibrant (v .snd) (A .f) f) (x .fst) (y .fst)
          (sfib_prop (v .fst) (x .fst) (y .fst)) (x .snd) (y .snd)
-         (rel Br_sProp_sfib (v .snd) .id (A .f) (y .fst) .prop))
+         (prop_Br (isStrongFibrant (A .t)) (isStrongFibrant (v .fst))
+            (Br isStrongFibrant (v .snd)) (sfib_prop (A .t))
+            (sfib_prop (v .fst))
+            (p₀ q₀ p₁ q₁ p₂ q₂ ↦ rel sfib_prop (v .snd) p₂ q₂) (A .f)
+            (y .fst)))
 
 {` The Type part of a bridge out of A is strictly equal to (A .t, rel (A .t)):
 bisimulation, equivalence induction, Gel_η. `}
@@ -155,16 +91,6 @@ def H₀ (A : SFib) : eq.iscontr (Σ SFib (B ↦ Br SFib A B)) ≔ (
          (Br_base_eq A (u .fst .t) (u .snd .t) (u .fst .f) (u .snd .f))
          (u .fst .f, u .snd .f) (A .f, rel (A .f))))
 
-{` Inverting an equality twice is the identity. `}
-def eq_inv_inv (X : Type) (x y : X) (p : eq X x y)
-  : eq (eq X x y) (eq.inv X y x (eq.inv X x y p)) p
-  ≔ match p [ rfl. ↦ rfl. ]
-
-{` Inversion is an equivalence eq X x y ≅ eq X y x. `}
-def eq_inv_eqv (X : Type) (x y : X) : eq X x y ≅ eq X y x
-  ≔ adjointify (eq X x y) (eq X y x) (eq.inv X x y) (eq.inv X y x)
-      (eq_inv_inv X x y) (eq_inv_inv X y x)
-
 {` The Type part of a bridge in SFib into B. `}
 def Br_basel (B : SFib) : Type ≔ Σ Type (Y ↦ Br Type Y (B .t))
 
@@ -187,7 +113,11 @@ def Br_fibl_prop (B : SFib) (v : Br_basel B) (x y : Br_fibl B v)
       (eqd_prop (isStrongFibrant (v .fst))
          (f ↦ Br isStrongFibrant (v .snd) f (B .f)) (x .fst) (y .fst)
          (sfib_prop (v .fst) (x .fst) (y .fst)) (x .snd) (y .snd)
-         (rel Br_sProp_sfib (v .snd) .id (y .fst) (B .f) .prop))
+         (prop_Br (isStrongFibrant (v .fst)) (isStrongFibrant (B .t))
+            (Br isStrongFibrant (v .snd)) (sfib_prop (v .fst))
+            (sfib_prop (B .t))
+            (p₀ q₀ p₁ q₁ p₂ q₂ ↦ rel sfib_prop (v .snd) p₂ q₂) (y .fst)
+            (B .f)))
 
 {` Mirror image of Br_base_eq, inducting on B .t ≅ At. `}
 def Br_basel_eq (B : SFib) (At : Type) (X : Br Type At (B .t))
@@ -310,10 +240,7 @@ def 𝕤T (y : ∂) : isStrongFibrant (T y) ≔ [
 | .id.p ↦ x₀ x₁ ↦ 𝕤T (suc. y.0 y.1 y.2 x₀ x₁)]
 
 {` The universe of strongly fibrant types is strongly fibrant. `}
-def 𝕤SFib : isStrongFibrant SFib ≔ [
-| .trr.p ↦ A ↦ H₀ A
-| .trl.p ↦ B ↦ H₀l B
-| .id.p ↦ A B ↦ 𝕤T (suc. zero. zero. zero. A B)]
+def 𝕤SFib : isStrongFibrant SFib ≔ 𝕤T zero.
 
 {` SFib as an element of SFib. `}
 def SFib𝕤 : SFib ≔ (SFib, 𝕤SFib)

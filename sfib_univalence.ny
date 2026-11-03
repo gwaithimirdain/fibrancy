@@ -6,6 +6,7 @@ import "hott_bookhott"
 import "fibrant_types"
 import "isstrongfibrant"
 import "sfib_types"
+import "sfib_eq_lemmas"
 
 {` Strict equality types are strongly fibrant `}
 def 𝕤eq (A : SFib) (x y : A .t) : isStrongFibrant (eq (A .t) x y)
@@ -155,30 +156,6 @@ def Id_eq_rfl (A0 A1 : Type) (A2 : Br Type A0 A1) (a00 a01 : A0)
   fro_to ≔ a22 ↦ match a02, a12, a22 [ rfl., rfl., rfl. ↦ rfl. ],
   to_fro ≔ [ rfl. ⤇ rfl. ],
   to_fro_to ≔ a22 ↦ match a02, a12, a22 [ rfl., rfl., rfl. ↦ rfl. ])
-
-def based_contr (X : Type) (x y : X) (r : eq X x y)
-  : eq (Σ X (z ↦ eq X x z)) (y, r) (x, rfl.)
-  ≔ match r [ rfl. ↦ rfl. ]
-
-def ap_singl (X Y : Type) (g : X → Y) (x y : X) (p : eq X x y)
-  : eq (Σ X (z ↦ eq Y (g z) (g y))) (y, rfl.) (x, eq.ap X Y g x y p)
-  ≔ match p [ rfl. ↦ rfl. ]
-
-def fro_contr (A B : Type) (e : A ≅ B) (a : A) (b : B)
-  (r : eq A (e .fro b) a)
-  : eq (Σ B (b' ↦ eq A (e .fro b') a)) (b, r) (e .to a, e .fro_to a)
-  ≔ match r [
-| rfl. ↦
-    eq.cat (Σ B (b' ↦ eq A (e .fro b') (e .fro b))) (b, rfl.)
-      (e .to (e .fro b),
-       eq.ap B A (e .fro) (e .to (e .fro b)) b (e .to_fro b))
-      (e .to (e .fro b), e .fro_to (e .fro b))
-      (ap_singl B A (e .fro) (e .to (e .fro b)) b (e .to_fro b))
-      (eq.ap (eq A (e .fro (e .to (e .fro b))) (e .fro b))
-         (Σ B (b' ↦ eq A (e .fro b') (e .fro b)))
-         (q ↦ (e .to (e .fro b), q))
-         (eq.ap B A (e .fro) (e .to (e .fro b)) b (e .to_fro b))
-         (e .fro_to (e .fro b)) (fro_to_fro A B e b))]
 
 {` Strong analogue of isBisim_≅ in bisim.ny. `}
 def isBisim_of_iso (A B : Type) (e : A ≅ B)

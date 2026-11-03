@@ -3,17 +3,10 @@
 import "bookhott"
 import "fibrant_types"
 import "isstrongfibrant"
+import "sfib_eq_lemmas"
 
 {` The four axioms of the outer layer used for isStrongFibrant SFib:
 ua_contract, Gel_η, sfib_prop below, and funext from fibrant_types.ny. `}
-
-{` The identity equivalence. `}
-def eqv_idmap (A : Type) : A ≅ A ≔ (
-  to ≔ x ↦ x,
-  fro ≔ x ↦ x,
-  fro_to ≔ _ ↦ rfl.,
-  to_fro ≔ _ ↦ rfl.,
-  to_fro_to ≔ _ ↦ rfl.)
 
 {` Univalence as based path induction: equivalences out of A are contractible
 onto the identity. `}

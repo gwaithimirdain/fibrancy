@@ -4,21 +4,12 @@ import "bookhott"
 import "hott_bookhott"
 import "fibrant_types"
 import "isstrongfibrant"
+import "sfib_eq_lemmas"
 
 {` The strong analogue of fibrant_types.ny: the basic type formers preserve
 strong fibrancy. The types themselves, their codes, and the isomorphisms
 characterizing their bridge types are those of fibrant_types.ny; only the
 fibrancy witnesses are new. `}
-
-{` Contractibility passes to retracts. `}
-def eq.iscontr_retract (X Y : Type) (Φ : X → Y) (Ψ : Y → X)
-  (r : (y : Y) → eq Y (Φ (Ψ y)) y) (c : eq.iscontr X)
-  : eq.iscontr Y
-  ≔ (
-  center ≔ Φ (c .center),
-  contract ≔ y ↦
-    eq.cat Y y (Φ (Ψ y)) (Φ (c .center)) (eq.inv Y (Φ (Ψ y)) y (r y))
-      (eq.ap X Y Φ (Ψ y) (c .center) (c .contract (Ψ y))))
 
 {` Variants of Id_eq: an Id of equalities induces an equality in the total space
 of either variable. `}
@@ -127,26 +118,6 @@ notation(2) A "×𝕤" B ≔ prod𝕤 A B
 
 {` Σ-types `}
 
-{` A dependent equality into a contractible fiber: any element is equal, over
-any equality of the base, to the center. `}
-def eqd_contr (X : Type) (F : X → Type) (x c : X) (e : eq X x c) (y : F x)
-  (k : eq.iscontr (F c))
-  : eqd X F x c e y (k .center)
-  ≔ match e [ rfl. ↦ k .contract y ]
-
-{` A Σ-type over a contractible base, whose fiber over the center is
-contractible, is contractible. `}
-def eq.iscontr_Σ (X : Type) (Q : X → Type) (cX : eq.iscontr X)
-  (cQ : eq.iscontr (Q (cX .center)))
-  : eq.iscontr (Σ X Q)
-  ≔ (
-  center ≔ (cX .center, cQ .center),
-  contract ≔ w ↦
-    ap2d X Q (Σ X Q) (x q ↦ (x, q)) (w .fst) (cX .center)
-      (cX .contract (w .fst)) (w .snd) (cQ .center)
-      (eqd_contr X Q (w .fst) (cX .center) (cX .contract (w .fst)) (w .snd)
-         cQ))
-
 {` The total space of bridges in a Σ-type is, by η, the same as a Σ-type of
 total spaces, so this is an instance of eq.iscontr_Σ. For .id, bridges in a
 Σ-type are equivalent (id_Σ_iso) to a Σ-type of bridges, which is strongly
@@ -191,50 +162,6 @@ def Σ𝕤 (A : SFib) (B : A .t → SFib) : SFib ≔ (
 
 {` Π-types. Uniqueness of the transported function is an equality of functions,
 so this needs funext. `}
-
-{` A Π-type of contractible types is contractible. `}
-def eq.iscontr_Π (X : Type) (Y : X → Type) (c : (x : X) → eq.iscontr (Y x))
-  : eq.iscontr ((x : X) → Y x)
-  ≔ (
-  center ≔ x ↦ c x .center,
-  contract ≔ f ↦ funext X Y f (x ↦ c x .center) (x ↦ c x .contract (f x)))
-
-{` Transporting the value of a dependent function along an equality of the base
-gives its value at the target. `}
-def eq.trr_apd (X : Type) (P : X → Type) (k : (x : X) → P x) (x y : X)
-  (e : eq X x y)
-  : eq (P y) (eq.trr X P x y e (k x)) (k y)
-  ≔ match e [ rfl. ↦ rfl. ]
-
-{` If X is contractible, then a Σ-type whose fibers are functions out of X is a
-retract of the Σ-type of their values at the center; so it is contractible if
-the latter is. `}
-def eq.iscontr_ΣΠ (X : Type) (cX : eq.iscontr X) (V : Type)
-  (P : X → V → Type) (c : eq.iscontr (Σ V (v ↦ P (cX .center) v)))
-  : eq.iscontr (Σ V (v ↦ (x : X) → P x v))
-  ≔ eq.iscontr_retract (Σ V (v ↦ P (cX .center) v))
-      (Σ V (v ↦ (x : X) → P x v))
-      (w ↦
-       (w .fst,
-        x ↦
-          eq.trr X (y ↦ P y (w .fst)) (cX .center) x
-            (eq.inv X x (cX .center) (cX .contract x)) (w .snd)))
-      (w ↦ (w .fst, w .snd (cX .center)))
-      (w ↦
-       eq.ap ((x : X) → P x (w .fst)) (Σ V (v ↦ (x : X) → P x v))
-         (k ↦ (w .fst, k))
-         (x ↦
-          eq.trr X (y ↦ P y (w .fst)) (cX .center) x
-            (eq.inv X x (cX .center) (cX .contract x))
-            (w .snd (cX .center))) (w .snd)
-         (funext X (x ↦ P x (w .fst))
-            (x ↦
-             eq.trr X (y ↦ P y (w .fst)) (cX .center) x
-               (eq.inv X x (cX .center) (cX .contract x))
-               (w .snd (cX .center))) (w .snd)
-            (x ↦
-             eq.trr_apd X (y ↦ P y (w .fst)) (w .snd) (cX .center) x
-               (eq.inv X x (cX .center) (cX .contract x))))) c
 
 def 𝕤Π (A : Type) (B : A → Type) (𝕤A : isStrongFibrant A)
   (𝕤B : (x : A) → isStrongFibrant (B x))
@@ -321,11 +248,6 @@ def 𝕤sum (A B : Type) (𝕤A : isStrongFibrant A) (𝕤B : isStrongFibrant B)
 | .trr.p ↦ [
   | left. a0 ↦
     ` T: the type we must show contractible, all bridges from left. a0 with a free endpoint
-
-
-
-
-
 
 
       let T : Type ≔ Σ (A.1 ⊔ B.1) (u1 ↦ Br sum A.2 B.2 (left. a0) u1) in

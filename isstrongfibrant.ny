@@ -3,11 +3,7 @@
 import "isfibrant"
 import "bookhott"
 import "fibrant_types"
-
-{` Contractibility with respect to the Martin-Lof identity type. `}
-def eq.iscontr (A : Type) : Type ≔ sig (
-  center : A,
-  contract : (a : A) → eq A a center )
+import "sfib_eq_lemmas"
 
 {` Strong fibrancy is a higher coinductive predicate: an identification of strongly 
 fibrant types is a 1-1 correspondence, with contractibility measured by the Martin-Lof 
@@ -169,11 +165,6 @@ the bridges of a strongly fibrant type are no more than strict equalities. `}
 {` A strict equality gives a bridge. `}
 def eq.to_Br (X : Type) (x y : X) (e : eq X x y) : Br X x y ≔ match e [
 | rfl. ↦ rel x]
-
-def eq.ap_cat_inv (X Y : Type) (f : X → Y) (x y : X) (e : eq X x y)
-  : eq (eq Y (f x) (f x))
-      (eq.ap X Y f x x (eq.cat X x y x e (eq.inv X x y e))) rfl.
-  ≔ match e [ rfl. ↦ rfl. ]
 
 {` The based bridge space. `}
 def Singl (A : SFib) (a : A .t) : Type ≔ Σ (A .t) (z ↦ Br (A .t) a z)
