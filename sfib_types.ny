@@ -1,6 +1,5 @@
 {` -*- narya-prog-args: ("-proofgeneral" "-parametric" "-direction" "p,rel,Br") -*- `}
 
-import "isfibrant"
 import "bookhott"
 import "hott_bookhott"
 import "fibrant_types"
@@ -322,6 +321,8 @@ def 𝕤sum (A B : Type) (𝕤A : isStrongFibrant A) (𝕤B : isStrongFibrant B)
 | .trr.p ↦ [
   | left. a0 ↦
     ` T: the type we must show contractible, all bridges from left. a0 with a free endpoint
+
+
 
 
 

@@ -5,293 +5,327 @@ import "bookhott"
 import "hott_bookhott"
 import "fibrant_types"
 import "isstrongfibrant"
-import "strongfibrant_types"
+import "sfib_types"
+import "sfib_prop"
+import "sfib_axioms"
 
-{` Strict equality types are strongly fibrant `}
-def 𝕤eq (A : SFib) (x y : A .t) : isStrongFibrant (eq (A .t) x y)
-  ≔ 𝕤eqv (Br (A .t) x y) (eq (A .t) x y) (sbridge_eqv_eq A x y)
-      (rel A .f .id x y)
+{` Transport along the first projection of an equality in a total space recovers
+the second component. `}
+def ap_fst_trr (Q : Type) (F : Q → Type) (w u : Σ Q F) (s : eq (Σ Q F) w u)
+  : eq (F (u .fst))
+      (eq.trr Q F (w .fst) (u .fst) (eq.ap (Σ Q F) Q (v ↦ v .fst) w u s)
+         (w .snd)) (u .snd)
+  ≔ match s [ rfl. ↦ rfl. ]
 
-def eq𝕤 (A : SFib) (x y : A .t) : SFib ≔ (eq (A .t) x y, 𝕤eq A x y)
+{` The path from the center to any point, routed through the center's own
+contraction. `}
+def contr_singl (Q : Type) (F : Q → Type) (c : eq.iscontr (Σ Q F))
+  (u : Σ Q F)
+  : eq (Σ Q F) (c .center) u
+  ≔ eq.cat (Σ Q F) (c .center) (c .center) u (c .contract (c .center))
+      (eq.inv (Σ Q F) u (c .center) (c .contract u))
 
-{` Strong analogue of isBisim in homotopy.ny. 
-  Could be defined without strong fibrancy. `}
-def isSBisim (A B : SFib) (R : A .t → B .t → SFib) : Type ≔ codata [
-| x .contrr : (a : A .t) → eq.iscontr (Σ (B .t) (b ↦ R a b .t))
-| x .contrl : (b : B .t) → eq.iscontr (Σ (A .t) (a ↦ R a b .t))
-| x .id.p
-  : (a0 : A.0 .t) (b0 : B.0 .t) (r0 : R.0 a0 b0 .t) (a1 : A.1 .t)
-    (b1 : B.1 .t) (r1 : R.1 a1 b1 .t)
-    → isSBisim (Idd𝕤 A.0 A.1 A.2 a0 a1) (Idd𝕤 B.0 B.1 B.2 b0 b1)
-        (a2 b2 ↦ Idd𝕤 (R.0 a0 b0) (R.1 a1 b1) (R.2 a2 b2) r0 r1) ]
+{` In a contractible total space, a point of a fiber gives a path from the base
+of the center. `}
+def fiber_to_eq (Q : Type) (F : Q → Type) (c : eq.iscontr (Σ Q F)) (b : Q)
+  (r : F b)
+  : eq Q (c .center .fst) b
+  ≔ eq.ap (Σ Q F) Q (v ↦ v .fst) (c .center) (b, r)
+      (contr_singl Q F c (b, r))
 
-{` Strong analogue of isbisim_eqv in homotopy.ny. 
-  Could be proved without strong fibrancy. `}
-def isSBisim_eqv (A B : SFib) (R S : A .t → B .t → SFib)
-  (e : (a : A .t) (b : B .t) → R a b .t ≅ S a b .t) (re : isSBisim A B R)
-  : isSBisim A B S
-  ≔ [
-| .contrr ↦ a ↦
-    eq.iscontr_retract (Σ (B .t) (b ↦ R a b .t)) (Σ (B .t) (b ↦ S a b .t))
-      (u ↦ (u .fst, e a (u .fst) .to (u .snd)))
-      (v ↦ (v .fst, e a (v .fst) .fro (v .snd)))
-      (v ↦
-       eq.ap (S a (v .fst) .t) (Σ (B .t) (b ↦ S a b .t)) (z ↦ (v .fst, z))
-         (e a (v .fst) .to (e a (v .fst) .fro (v .snd))) (v .snd)
-         (e a (v .fst) .to_fro (v .snd))) (re .contrr a)
-| .contrl ↦ b ↦
-    eq.iscontr_retract (Σ (A .t) (a ↦ R a b .t)) (Σ (A .t) (a ↦ S a b .t))
-      (u ↦ (u .fst, e (u .fst) b .to (u .snd)))
-      (v ↦ (v .fst, e (v .fst) b .fro (v .snd)))
-      (v ↦
-       eq.ap (S (v .fst) b .t) (Σ (A .t) (a ↦ S a b .t)) (z ↦ (v .fst, z))
-         (e (v .fst) b .to (e (v .fst) b .fro (v .snd))) (v .snd)
-         (e (v .fst) b .to_fro (v .snd))) (re .contrl b)
-| .id.p ↦ a0 b0 s0 a1 b1 s1 ↦
-    let r0 ≔ e.0 a0 b0 .fro s0 in
-    let r1 ≔ e.1 a1 b1 .fro s1 in
-    isSBisim_eqv (Idd𝕤 A.0 A.1 A.2 a0 a1) (Idd𝕤 B.0 B.1 B.2 b0 b1)
-      (a2 b2 ↦ Idd𝕤 (R.0 a0 b0) (R.1 a1 b1) (R.2 a2 b2) r0 r1)
-      (a2 b2 ↦ Idd𝕤 (S.0 a0 b0) (S.1 a1 b1) (S.2 a2 b2) s0 s1)
-      (a2 b2 ↦
-       Id_eqv (R.0 a0 b0 .t) (R.1 a1 b1 .t) (R.2 a2 b2 .t) (S.0 a0 b0 .t)
-         (S.1 a1 b1 .t) (S.2 a2 b2 .t) (e.0 a0 b0) (e.1 a1 b1) (e.2 a2 b2)
-         s0 s1) (re.2 .id a0 b0 r0 a1 b1 r1)]
+{` Conversely, a path from the base of the center gives a point of the fiber, by
+transport. `}
+def eq_to_fiber (Q : Type) (F : Q → Type) (c : eq.iscontr (Σ Q F)) (b : Q)
+  (e : eq Q (c .center .fst) b)
+  : F b
+  ≔ eq.trr Q F (c .center .fst) b e (c .center .snd)
 
-{` If the transport of u2 along p0 and p1 equals c2, 
-then the square with sides p0, p1, u2, c2 is filled over X2. `}
-def Br_eq_of_eq (X0 X1 : Type) (X2 : Br Type X0 X1) (u0 c0 : X0)
-  (p0 : eq X0 u0 c0) (u1 c1 : X1) (p1 : eq X1 u1 c1) (u2 : X2 u0 u1)
-  (c2 : X2 c0 c1)
-  (h : eq (X2 c0 c1) (eq.trr2 X0 X1 (x y ↦ X2 x y) u0 c0 p0 u1 c1 p1 u2) c2)
-  : Br eq X2 u2 c2 p0 p1
-  ≔ match p0, p1 [ rfl., rfl. ↦ match h [ rfl. ↦ rfl. ] ]
+{` Round trip on fibers. `}
+def fiber_fro_to (Q : Type) (F : Q → Type) (c : eq.iscontr (Σ Q F)) (b : Q)
+  (r : F b)
+  : eq (F b) (eq_to_fiber Q F c b (fiber_to_eq Q F c b r)) r
+  ≔ ap_fst_trr Q F (c .center) (b, r) (contr_singl Q F c (b, r))
 
-{` If X0 and X1 are contractible, and the fiber of X2 over their centers is
-contractible, then the two contractions are related by a bridge over X2. `}
-def Br_iscontr (X0 X1 : Type) (X2 : Br Type X0 X1) (c0 : eq.iscontr X0)
-  (c1 : eq.iscontr X1) (k : eq.iscontr (X2 (c0 .center) (c1 .center)))
-  : Br eq.iscontr X2 c0 c1
-  ≔ (
-  center ≔ k .center,
-  contract ≔ u ⤇
-    Br_eq_of_eq X0 X1 X2 u.0 (c0 .center) (c0 .contract u.0) u.1
-      (c1 .center) (c1 .contract u.1) u.2 (k .center)
-      (k .contract
-         (eq.trr2 X0 X1 (x y ↦ X2 x y) u.0 (c0 .center) (c0 .contract u.0)
-            u.1 (c1 .center) (c1 .contract u.1) u.2)))
+{` Round trip on paths. `}
+def fiber_to_fro (Q : Type) (F : Q → Type) (c : eq.iscontr (Σ Q F)) (b : Q)
+  (e : eq Q (c .center .fst) b)
+  : eq (eq Q (c .center .fst) b)
+      (fiber_to_eq Q F c b (eq_to_fiber Q F c b e)) e
+  ≔ match e [
+| rfl. ↦
+    eq.ap_cat_inv (Σ Q F) Q (v ↦ v .fst) (c .center) (c .center)
+      (c .contract (c .center))]
 
-{` Strong analogue of pre_univalence `}
-def spre_univalence (A B : SFib) (G : Br Type (A .t) (B .t))
-  (𝕤G : (a : A .t) (b : B .t) → isStrongFibrant (G a b))
-  (re : isSBisim A B (x y ↦ (G x y, 𝕤G x y)))
-  : Br isStrongFibrant G (A .f) (B .f)
-  ≔ [
-| .trr.1 ↦ a ↦ re .contrr a
-| .trl.1 ↦ b ↦ re .contrl b
-| .id.1 ↦ a b ↦ 𝕤G a b
-| .trr.p ↦ {a0} {b0} r0 ↦
-    let ca ≔ A.2 .f .trr a0 .center in
-    let cb ≔ B.2 .f .trr b0 .center in
-    Br_iscontr (Σ (A.1 .t) (a1 ↦ A.2 .t a0 a1))
-      (Σ (B.1 .t) (b1 ↦ B.2 .t b0 b1))
-      (Σ⁽ᵖ⁾ G.1 {a1 ↦ A.2 .t a0 a1} {b1 ↦ B.2 .t b0 b1}
-         (x ⤇ sym G.2 r0 x.2)) (A.2 .f .trr a0) (B.2 .f .trr b0)
-      (eq.iscontr_retract
-         (Σ (G.1 (ca .fst) (cb .fst)) (g1 ↦ G.2 (ca .snd) (cb .snd) r0 g1))
-         (Σ⁽ᵖ⁾ G.1 {a1 ↦ A.2 .t a0 a1} {b1 ↦ B.2 .t b0 b1}
-            (x ⤇ sym G.2 r0 x.2) ca cb) (u ↦ (u .fst, sym (u .snd)))
-         (v ↦ (v .fst, sym (v .snd))) (v ↦ rfl.)
-         (𝕤G.2 (ca .snd) (cb .snd) .trr r0))
-| .trl.p ↦ {a1} {b1} r1 ↦
-    let ca ≔ A.2 .f .trl a1 .center in
-    let cb ≔ B.2 .f .trl b1 .center in
-    Br_iscontr (Σ (A.0 .t) (a0 ↦ A.2 .t a0 a1))
-      (Σ (B.0 .t) (b0 ↦ B.2 .t b0 b1))
-      (Σ⁽ᵖ⁾ G.0 {a0 ↦ A.2 .t a0 a1} {b0 ↦ B.2 .t b0 b1}
-         (x ⤇ sym G.2 x.2 r1)) (A.2 .f .trl a1) (B.2 .f .trl b1)
-      (eq.iscontr_retract
-         (Σ (G.0 (ca .fst) (cb .fst)) (g0 ↦ G.2 (ca .snd) (cb .snd) g0 r1))
-         (Σ⁽ᵖ⁾ G.0 {a0 ↦ A.2 .t a0 a1} {b0 ↦ B.2 .t b0 b1}
-            (x ⤇ sym G.2 x.2 r1) ca cb) (u ↦ (u .fst, sym (u .snd)))
-         (v ↦ (v .fst, sym (v .snd))) (v ↦ rfl.)
-         (𝕤G.2 (ca .snd) (cb .snd) .trl r1))
-| .id.p ↦ {a0} {b0} r0 {a1} {b1} r1 ↦
-    let s
-      : (a2 : A.2 .t a0 a1) (b2 : B.2 .t b0 b1)
-        → G.2 a2 b2 r0 r1 ≅ sym G.2 r0 r1 a2 b2
-      ≔ a2 b2 ↦
-        sym_eqv (A.0 .t) (A.1 .t) (A.2 .t) (B.0 .t) (B.1 .t) (B.2 .t) G.0
-          G.1 G.2 a0 a1 a2 b0 b1 b2 r0 r1 in
-    let 𝕤sG
-      : (a2 : A.2 .t a0 a1) (b2 : B.2 .t b0 b1)
-        → isStrongFibrant (sym G.2 r0 r1 a2 b2)
-      ≔ a2 b2 ↦
-        𝕤eqv (G.2 a2 b2 r0 r1) (sym G.2 r0 r1 a2 b2) (s a2 b2)
-          (𝕤G.2 a2 b2 .id r0 r1) in
-    spre_univalence (Idd𝕤 A.0 A.1 A.2 a0 a1) (Idd𝕤 B.0 B.1 B.2 b0 b1)
-      (sym G.2 r0 r1) 𝕤sG
-      (isSBisim_eqv (Idd𝕤 A.0 A.1 A.2 a0 a1) (Idd𝕤 B.0 B.1 B.2 b0 b1)
-         (a2 b2 ↦ (G.2 a2 b2 r0 r1, 𝕤G.2 a2 b2 .id r0 r1))
-         (a2 b2 ↦ (sym G.2 r0 r1 a2 b2, 𝕤sG a2 b2)) s
-         (re.2 .id a0 b0 r0 a1 b1 r1))]
+{` The fibers of a contractible total space are the based path spaces at the
+center. `}
+def fiber_eqv (Q : Type) (F : Q → Type) (c : eq.iscontr (Σ Q F)) (b : Q)
+  : F b ≅ eq Q (c .center .fst) b
+  ≔ adjointify (F b) (eq Q (c .center .fst) b) (fiber_to_eq Q F c b)
+      (eq_to_fiber Q F c b) (fiber_fro_to Q F c b) (fiber_to_fro Q F c b)
 
-def sunivalence (A B : SFib) (R : A .t → B .t → SFib) (re : isSBisim A B R)
-  : Br SFib A B
-  ≔
-  let Rt : A .t → B .t → Type ≔ x y ↦ R x y .t in
-  let Rf : (a : A .t) (b : B .t) → isStrongFibrant (Rt a b)
-    ≔ x y ↦ R x y .f in
-  (Gel (A .t) (B .t) Rt,
-   spre_univalence A B (Gel (A .t) (B .t) Rt)
-     (a b ↦ 𝕤Gel (A .t) (B .t) Rt Rf a b)
-     (isSBisim_eqv A B (x y ↦ R x y)
-        (a b ↦ (Gel (A .t) (B .t) Rt a b, 𝕤Gel (A .t) (B .t) Rt Rf a b))
-        (a b ↦ Gel_iso (A .t) (B .t) Rt a b) re))
+{` A correspondence whose fibers in both directions have contractible total
+spaces is an equivalence (level 0 of a strong bisimulation). `}
+def corr_to_eqv (P Q : Type) (R : P → Q → Type)
+  (cr : (p : P) → eq.iscontr (Σ Q (q ↦ R p q)))
+  (cl : (q : Q) → eq.iscontr (Σ P (p ↦ R p q)))
+  : P ≅ Q
+  ≔ adjointify P Q (p ↦ cr p .center .fst) (q ↦ cl q .center .fst)
+      (p ↦
+       eq.inv P p (cl (cr p .center .fst) .center .fst)
+         (eq.ap (Σ P (p' ↦ R p' (cr p .center .fst))) P (v ↦ v .fst)
+            (p, cr p .center .snd) (cl (cr p .center .fst) .center)
+            (cl (cr p .center .fst) .contract (p, cr p .center .snd))))
+      (q ↦
+       eq.inv Q q (cr (cl q .center .fst) .center .fst)
+         (eq.ap (Σ Q (q' ↦ R (cl q .center .fst) q')) Q (v ↦ v .fst)
+            (q, cl q .center .snd) (cr (cl q .center .fst) .center)
+            (cr (cl q .center .fst) .contract (q, cl q .center .snd))))
 
-def Id_eq_rfl (A0 A1 : Type) (A2 : Br Type A0 A1) (a00 a01 : A0)
-  (a02 : eq A0 a00 a01) (a10 a11 : A1) (a12 : eq A1 a10 a11)
-  (a20 : A2 a00 a10) (a21 : A2 a01 a11)
-  : eq (A2 a00 a10) a20
-      (eq.trl2 A0 A1 (a0 a1 ↦ A2 a0 a1) a00 a01 a02 a10 a11 a12 a21)
-    ≅ Br eq A2 a20 a21 a02 a12
-  ≔ (
-  to ≔ a22 ↦ match a02, a12, a22 [ rfl., rfl., rfl. ↦ rfl. ],
-  fro ≔ [ rfl. ⤇ rfl. ],
-  fro_to ≔ a22 ↦ match a02, a12, a22 [ rfl., rfl., rfl. ↦ rfl. ],
-  to_fro ≔ [ rfl. ⤇ rfl. ],
-  to_fro_to ≔ a22 ↦ match a02, a12, a22 [ rfl., rfl., rfl. ↦ rfl. ])
+{` A dependent equality into a strict proposition. `}
+def eqd_prop (X : Type) (F : X → Type) (x c : X) (e : eq X x c) (y : F x)
+  (z : F c) (h : (u v : F c) → eq (F c) u v)
+  : eqd X F x c e y z
+  ≔ match e [ rfl. ↦ h y z ]
 
-def based_contr (X : Type) (x y : X) (r : eq X x y)
-  : eq (Σ X (z ↦ eq X x z)) (y, r) (x, rfl.)
-  ≔ match r [ rfl. ↦ rfl. ]
+{` Equalities in a Σ-type over a family of strict propositions come from
+equalities in the base. `}
+def Σ_prop_eq (V : Type) (Q : V → Type)
+  (hQ : (v : V) (x y : Q v) → eq (Q v) x y) (v w : V) (e : eq V v w)
+  (x : Q v) (y : Q w)
+  : eq (Σ V Q) (v, x) (w, y)
+  ≔ ap2d V Q (Σ V Q) (v x ↦ (v, x)) v w e x y
+      (eqd_prop V Q v w e x y (hQ w))
 
-def ap_singl (X Y : Type) (g : X → Y) (x y : X) (p : eq X x y)
-  : eq (Σ X (z ↦ eq Y (g z) (g y))) (y, rfl.) (x, eq.ap X Y g x y p)
+{` The Type part of a bridge in SFib out of A. `}
+def Br_base (A : SFib) : Type ≔ Σ Type (Y ↦ Br Type (A .t) Y)
+
+{` The strong-fibrancy part of a bridge in SFib out of A. `}
+def Br_fib (A : SFib) (v : Br_base A) : Type
+  ≔ Σ (isStrongFibrant (v .fst)) (f ↦ Br isStrongFibrant (v .snd) (A .f) f)
+
+{` Reassembling base and fibrancy parts into a bridge in SFib. `}
+def reassoc (A : SFib) (w : Σ (Br_base A) (Br_fib A))
+  : Σ SFib (B ↦ Br SFib A B)
+  ≔ ((w .fst .fst, w .snd .fst), (w .fst .snd, w .snd .snd))
+
+{` The strong-fibrancy part is a strict proposition (sfib_prop and its
+degeneracy). `}
+def Br_fib_prop (A : SFib) (v : Br_base A) (x y : Br_fib A v)
+  : eq (Br_fib A v) x y
+  ≔ ap2d (isStrongFibrant (v .fst))
+      (f ↦ Br isStrongFibrant (v .snd) (A .f) f) (Br_fib A v)
+      (f g ↦ (f, g)) (x .fst) (y .fst)
+      (sfib_prop (v .fst) (x .fst) (y .fst)) (x .snd) (y .snd)
+      (eqd_prop (isStrongFibrant (v .fst))
+         (f ↦ Br isStrongFibrant (v .snd) (A .f) f) (x .fst) (y .fst)
+         (sfib_prop (v .fst) (x .fst) (y .fst)) (x .snd) (y .snd)
+         (rel Br_sPropᵈ_sfib
+          .id (A .t) (v .fst) (A .f) (y .fst)
+          .prop (v .snd)))
+
+{` The Type part of a bridge out of A is strictly equal to (A .t, rel (A .t)):
+bisimulation, equivalence induction, Gel_η. `}
+def Br_base_eq (A : SFib) (Bt : Type) (X : Br Type (A .t) Bt)
+  (Bf : isStrongFibrant Bt) (Xf : Br isStrongFibrant X (A .f) Bf)
+  : eq (Br_base A) (Bt, X) (A .t, rel (A .t))
+  ≔ eqv_ind (A .t)
+      (Y e ↦
+       (Z : Br Type (A .t) Y) →
+       ((a : A .t) (y : Y) → Z a y ≅ eq Y (e .to a) y)
+       → eq (Br_base A) (Y, Z) (A .t, rel (A .t)))
+      (Z h ↦
+       eq.ap (Br Type (A .t) (A .t)) (Br_base A) (W ↦ (A .t, W)) Z
+         (rel (A .t))
+         (Br_eq_of_pointwise_eqv (A .t) (A .t) Z (rel (A .t))
+            (a b ↦
+             comp_eqv (Z a b) (eq (A .t) a b) (Br (A .t) a b) (h a b)
+               (inverse_eqv (Br (A .t) a b) (eq (A .t) a b)
+                  (sbridge_eqv_eq A a b))))) Bt
+      (corr_to_eqv (A .t) Bt (a b ↦ X a b) (a ↦ Xf .trr a) (b ↦ Xf .trl b))
+      X (a b ↦ fiber_eqv Bt (b' ↦ X a b') (Xf .trr a) b)
+
+{` Level 0: bridges out of A are contractible, with center (A, rel A) and the
+axioms only in the contraction. `}
+def H₀ (A : SFib) : eq.iscontr (Σ SFib (B ↦ Br SFib A B)) ≔ (
+  center ≔ (A, rel A),
+  contract ≔ u ↦
+    eq.ap (Σ (Br_base A) (Br_fib A)) (Σ SFib (B ↦ Br SFib A B)) (reassoc A)
+      ((u .fst .t, u .snd .t), (u .fst .f, u .snd .f))
+      ((A .t, rel (A .t)), (A .f, rel (A .f)))
+      (Σ_prop_eq (Br_base A) (Br_fib A) (Br_fib_prop A)
+         (u .fst .t, u .snd .t) (A .t, rel (A .t))
+         (Br_base_eq A (u .fst .t) (u .snd .t) (u .fst .f) (u .snd .f))
+         (u .fst .f, u .snd .f) (A .f, rel (A .f))))
+
+{` Inverting an equality twice is the identity. `}
+def eq_inv_inv (X : Type) (x y : X) (p : eq X x y)
+  : eq (eq X x y) (eq.inv X y x (eq.inv X x y p)) p
   ≔ match p [ rfl. ↦ rfl. ]
 
-def fro_contr (A B : Type) (e : A ≅ B) (a : A) (b : B)
-  (r : eq A (e .fro b) a)
-  : eq (Σ B (b' ↦ eq A (e .fro b') a)) (b, r) (e .to a, e .fro_to a)
-  ≔ match r [
-| rfl. ↦
-    eq.cat (Σ B (b' ↦ eq A (e .fro b') (e .fro b))) (b, rfl.)
-      (e .to (e .fro b),
-       eq.ap B A (e .fro) (e .to (e .fro b)) b (e .to_fro b))
-      (e .to (e .fro b), e .fro_to (e .fro b))
-      (ap_singl B A (e .fro) (e .to (e .fro b)) b (e .to_fro b))
-      (eq.ap (eq A (e .fro (e .to (e .fro b))) (e .fro b))
-         (Σ B (b' ↦ eq A (e .fro b') (e .fro b)))
-         (q ↦ (e .to (e .fro b), q))
-         (eq.ap B A (e .fro) (e .to (e .fro b)) b (e .to_fro b))
-         (e .fro_to (e .fro b)) (fro_to_fro A B e b))]
+{` Inversion is an equivalence eq X x y ≅ eq X y x. `}
+def eq_inv_eqv (X : Type) (x y : X) : eq X x y ≅ eq X y x
+  ≔ adjointify (eq X x y) (eq X y x) (eq.inv X x y) (eq.inv X y x)
+      (eq_inv_inv X x y) (eq_inv_inv X y x)
 
-{` An isomorphism gives a strong bisimulation. 
-  Could be proved without strong fibrancy. `}
-def isSBisim_of_iso (A B : SFib) (e : A .t ≅ B .t)
-  : isSBisim A B (a b ↦ eq𝕤 A (e .fro b) a)
-  ≔ [
-| .contrr ↦ a ↦ (
-    (e .to a, e .fro_to a),
-    u ↦ fro_contr (A .t) (B .t) e a (u .fst) (u .snd))
-| .contrl ↦ b ↦ (
-    (e .fro b, rfl.),
-    u ↦ based_contr (A .t) (e .fro b) (u .fst) (u .snd))
-| .id.p ↦ a0 b0 r0 a1 b1 r1 ↦ match r0, r1 [
-  | rfl., rfl. ↦
-      isSBisim_eqv (Idd𝕤 A.0 A.1 A.2 (e.0 .fro b0) (e.1 .fro b1))
-        (Idd𝕤 B.0 B.1 B.2 b0 b1)
-        (a2 b2 ↦
-         eq𝕤 (Idd𝕤 A.0 A.1 A.2 (e.0 .fro b0) (e.1 .fro b1))
-           (Id_eqv (A.0 .t) (A.1 .t) (A.2 .t) (B.0 .t) (B.1 .t) (B.2 .t)
-                e.0 e.1 e.2 b0 b1
-            .fro b2) a2)
-        (a2 b2 ↦
-         Idd𝕤 (eq𝕤 A.0 (e.0 .fro b0) (e.0 .fro b0))
-           (eq𝕤 A.1 (e.1 .fro b1) (e.1 .fro b1))
-           (rel eq𝕤 A.2 (e.2 .fro b2) a2) rfl. rfl.)
-        (a2 b2 ↦
-         Id_eq_rfl (A.0 .t) (A.1 .t) (A.2 .t) (e.0 .fro b0) (e.0 .fro b0)
-           rfl. (e.1 .fro b1) (e.1 .fro b1) rfl. (e.2 .fro b2) a2)
-        (isSBisim_of_iso (Idd𝕤 A.0 A.1 A.2 (e.0 .fro b0) (e.1 .fro b1))
-           (Idd𝕤 B.0 B.1 B.2 b0 b1)
-           (Id_eqv (A.0 .t) (A.1 .t) (A.2 .t) (B.0 .t) (B.1 .t) (B.2 .t)
-              e.0 e.1 e.2 b0 b1))]]
+{` The Type part of a bridge in SFib into B. `}
+def Br_basel (B : SFib) : Type ≔ Σ Type (Y ↦ Br Type Y (B .t))
 
-{` The negation automorphism of Bool gives a bridge in SFib that differs from
-rel Bool𝕤. If SFib were strongly fibrant, this bridge would become a nontrivial
-strict loop. Hence, if strict equality on SFib satisfies UIP, then SFib is not
-strongly fibrant. `}
-def Bool : Type ≔ ⊤ ⊔ ⊤
+{` The strong-fibrancy part of a bridge in SFib into B. `}
+def Br_fibl (B : SFib) (v : Br_basel B) : Type
+  ≔ Σ (isStrongFibrant (v .fst)) (f ↦ Br isStrongFibrant (v .snd) f (B .f))
 
-def true : Bool ≔ left. ()
+{` Reassembling base and fibrancy parts into a bridge into B. `}
+def reassocl (B : SFib) (w : Σ (Br_basel B) (Br_fibl B))
+  : Σ SFib (A ↦ Br SFib A B)
+  ≔ ((w .fst .fst, w .snd .fst), (w .fst .snd, w .snd .snd))
 
-def false : Bool ≔ right. ()
+{` Mirror image of Br_fib_prop. `}
+def Br_fibl_prop (B : SFib) (v : Br_basel B) (x y : Br_fibl B v)
+  : eq (Br_fibl B v) x y
+  ≔ ap2d (isStrongFibrant (v .fst))
+      (f ↦ Br isStrongFibrant (v .snd) f (B .f)) (Br_fibl B v)
+      (f g ↦ (f, g)) (x .fst) (y .fst)
+      (sfib_prop (v .fst) (x .fst) (y .fst)) (x .snd) (y .snd)
+      (eqd_prop (isStrongFibrant (v .fst))
+         (f ↦ Br isStrongFibrant (v .snd) f (B .f)) (x .fst) (y .fst)
+         (sfib_prop (v .fst) (x .fst) (y .fst)) (x .snd) (y .snd)
+         (rel Br_sPropᵈ_sfib
+          .id (v .fst) (B .t) (y .fst) (B .f)
+          .prop (v .snd)))
 
-def 𝕤Bool : isStrongFibrant Bool ≔ 𝕤sum ⊤ ⊤ 𝕤⊤ 𝕤⊤
+{` Mirror image of Br_base_eq, inducting on B .t ≅ At. `}
+def Br_basel_eq (B : SFib) (At : Type) (X : Br Type At (B .t))
+  (Af : isStrongFibrant At) (Xf : Br isStrongFibrant X Af (B .f))
+  : eq (Br_basel B) (At, X) (B .t, rel (B .t))
+  ≔ eqv_ind (B .t)
+      (Y e ↦
+       (Z : Br Type Y (B .t)) →
+       ((y : Y) (b : B .t) → Z y b ≅ eq Y (e .to b) y)
+       → eq (Br_basel B) (Y, Z) (B .t, rel (B .t)))
+      (Z h ↦
+       eq.ap (Br Type (B .t) (B .t)) (Br_basel B) (W ↦ (B .t, W)) Z
+         (rel (B .t))
+         (Br_eq_of_pointwise_eqv (B .t) (B .t) Z (rel (B .t))
+            (y b ↦
+             comp_eqv (Z y b) (eq (B .t) b y) (Br (B .t) y b) (h y b)
+               (comp_eqv (eq (B .t) b y) (eq (B .t) y b) (Br (B .t) y b)
+                  (eq_inv_eqv (B .t) b y)
+                  (inverse_eqv (Br (B .t) y b) (eq (B .t) y b)
+                     (sbridge_eqv_eq B y b)))))) At
+      (inverse_eqv At (B .t)
+         (corr_to_eqv At (B .t) (a b ↦ X a b) (a ↦ Xf .trr a)
+            (b ↦ Xf .trl b))) X
+      (y b ↦ fiber_eqv At (a ↦ X a b) (Xf .trl b) y)
 
-def Bool𝕤 : SFib ≔ (Bool, 𝕤Bool)
+{` Level 0 in the other direction, for .trl.p. `}
+def H₀l (B : SFib) : eq.iscontr (Σ SFib (A ↦ Br SFib A B)) ≔ (
+  center ≔ (B, rel B),
+  contract ≔ u ↦
+    eq.ap (Σ (Br_basel B) (Br_fibl B)) (Σ SFib (A ↦ Br SFib A B))
+      (reassocl B) ((u .fst .t, u .snd .t), (u .fst .f, u .snd .f))
+      ((B .t, rel (B .t)), (B .f, rel (B .f)))
+      (Σ_prop_eq (Br_basel B) (Br_fibl B) (Br_fibl_prop B)
+         (u .fst .t, u .snd .t) (B .t, rel (B .t))
+         (Br_basel_eq B (u .fst .t) (u .snd .t) (u .fst .f) (u .snd .f))
+         (u .fst .f, u .snd .f) (B .f, rel (B .f))))
 
-def neg : Bool → Bool ≔ [ left. _ ↦ right. () | right. _ ↦ left. () ]
+{` Converse of Br_iscontr: a bridge of contractions makes every fiber of the
+bridge contractible. `}
+def iscontr_of_Br (X0 X1 : Type) (X2 : Br Type X0 X1) (c0 : eq.iscontr X0)
+  (c1 : eq.iscontr X1) (c2 : Br eq.iscontr X2 c0 c1) (u0 : X0) (u1 : X1)
+  : eq.iscontr (X2 u0 u1)
+  ≔
+  let e0 ≔ c0 .contract u0 in
+  let e1 ≔ c1 .contract u1 in
+  let tr
+    ≔ eq.trr2 X0 X1 (x y ↦ X2 x y) u0 (c0 .center) e0 u1 (c1 .center) e1 in
+  let k
+    ≔ eq.trl2 X0 X1 (x y ↦ X2 x y) u0 (c0 .center) e0 u1 (c1 .center) e1
+        (c2 .center) in
+  (center ≔ k,
+   contract ≔ u2 ↦
+     eq.trr2_inj X0 X1 (x y ↦ X2 x y) u0 (c0 .center) e0 u1 (c1 .center) e1
+       u2 k
+       (eq.cat (X2 (c0 .center) (c1 .center)) (tr u2) (c2 .center) (tr k)
+          (Id_eq X0 X1 X2 u0 u1 u2 (c0 .center) (c1 .center) (c2 .center)
+             e0 e1 (c2 .contract u2))
+          (eq.inv (X2 (c0 .center) (c1 .center)) (tr k) (c2 .center)
+             (eqv_trr2 X0 X1 (x y ↦ X2 x y) u0 (c0 .center) e0 u1
+                  (c1 .center) e1
+              .to_fro (c2 .center)))))
 
-def neg_neg (b : Bool) : eq Bool (neg (neg b)) b ≔ match b [
-| left. _ ↦ rfl.
-| right. _ ↦ rfl.]
+{` Cube shapes ∂ and fillers T: T zero. is SFib, T (suc. …) is the type of
+bridges in T over the given boundary. `}
+def ∂ : Type ≔ data [
+| zero. : ∂
+| suc. : (y₀ y₁ : ∂) → Br ∂ y₀ y₁ → T y₀ → T y₁ → ∂ ]
 
-def neg_iso : Bool ≅ Bool
-  ≔ adjointify Bool Bool neg neg neg_neg neg_neg
+and T (y : ∂) : Type ≔ match y [
+| zero. ↦ SFib
+| suc. y₀ y₁ y₂ x₀ x₁ ↦ Br T y₂ x₀ x₁]
 
-def neg_bridge : Br SFib Bool𝕤 Bool𝕤
-  ≔ sunivalence Bool𝕤 Bool𝕤 (a b ↦ eq𝕤 Bool𝕤 (neg_iso .fro b) a)
-      (isSBisim_of_iso Bool𝕤 Bool𝕤 neg_iso)
+{` The type whose contractibility is the .trr.p field of isStrongFibrant (T y).
+`}
+def ΣBrT (y₀ y₁ : ∂) (y₂ : Br ∂ y₀ y₁) (x₀ : T y₀) : Type
+  ≔ Σ (T y₁) (x₁ ↦ Br T y₂ x₀ x₁)
 
-{` Transporting true along a bridge distinguishes the two bridges: rel Bool𝕤
-sends it to true and neg_bridge to false, both by rfl. Used in rel_neq_neg. `}
-def trr_true (p : Br SFib Bool𝕤 Bool𝕤) : Bool ≔ p .f .trr true .center .fst
+{` The same for .trl.p. `}
+def ΣBrTl (y₀ y₁ : ∂) (y₂ : Br ∂ y₀ y₁) (x₁ : T y₁) : Type
+  ≔ Σ (T y₀) (x₀ ↦ Br T y₂ x₀ x₁)
 
-def trr_true_rel : eq Bool (trr_true (rel Bool𝕤)) true ≔ rfl.
+{` Contractibility at every shape, by induction on the bridge y₂: zero. is H₀,
+suc. is iscontr_of_Br applied to rel H_all plus sym. `}
+def H_all (y₀ y₁ : ∂) (y₂ : Br ∂ y₀ y₁) (x₀ : T y₀)
+  : eq.iscontr (ΣBrT y₀ y₁ y₂ x₀)
+  ≔ match y₂ [
+| zero. ⤇ H₀ x₀
+| suc. y0 y1 y2 x0 x1 ⤇
+    eq.iscontr_retract
+      (rel ΣBrT y2.0 y2.1 (sym y2.2) x₀ (x0.1, x0.2) (x1.1, x1.2))
+      (ΣBrT (suc. y0.0 y1.0 y2.0 x0.0 x1.0) (suc. y0.1 y1.1 y2.1 x0.1 x1.1)
+         (suc. y0 y1 y2 x0 x1) x₀) (v ↦ (v .fst, sym (v .snd)))
+      (u ↦ (u .fst, sym (u .snd))) (u ↦ rfl.)
+      (iscontr_of_Br (ΣBrT y0.0 y0.1 y0.2 x0.0) (ΣBrT y1.0 y1.1 y1.2 x1.0)
+         (rel ΣBrT y2.0 y2.1 (sym y2.2) x₀) (H_all y0.0 y0.1 y0.2 x0.0)
+         (H_all y1.0 y1.1 y1.2 x1.0) (rel H_all y2.0 y2.1 (sym y2.2) x₀)
+         (x0.1, x0.2) (x1.1, x1.2))]
 
-def trr_true_neg : eq Bool (trr_true neg_bridge) false ≔ rfl.
+{` Mirror image of H_all. `}
+def H_all_l (y₀ y₁ : ∂) (y₂ : Br ∂ y₀ y₁) (x₁ : T y₁)
+  : eq.iscontr (ΣBrTl y₀ y₁ y₂ x₁)
+  ≔ match y₂ [
+| zero. ⤇ H₀l x₁
+| suc. y0 y1 y2 x0 x1 ⤇
+    eq.iscontr_retract
+      (rel ΣBrTl y2.0 y2.1 (sym y2.2) x₁ (x0.0, x0.2) (x1.0, x1.2))
+      (ΣBrTl (suc. y0.0 y1.0 y2.0 x0.0 x1.0)
+         (suc. y0.1 y1.1 y2.1 x0.1 x1.1) (suc. y0 y1 y2 x0 x1) x₁)
+      (v ↦ (v .fst, sym (v .snd))) (u ↦ (u .fst, sym (u .snd))) (u ↦ rfl.)
+      (iscontr_of_Br (ΣBrTl y0.0 y0.1 y0.2 x0.1)
+         (ΣBrTl y1.0 y1.1 y1.2 x1.1) (rel ΣBrTl y2.0 y2.1 (sym y2.2) x₁)
+         (H_all_l y0.0 y0.1 y0.2 x0.1) (H_all_l y1.0 y1.1 y1.2 x1.1)
+         (rel H_all_l y2.0 y2.1 (sym y2.2) x₁) (x0.0, x0.2) (x1.0, x1.2))]
 
-def isTrue : Bool → Type ≔ [ left. _ ↦ ⊤ | right. _ ↦ ∅ ]
+{` Every T y is strongly fibrant, by corecursion; the only corecursive call is
+in .id.p. `}
+def 𝕤T (y : ∂) : isStrongFibrant (T y) ≔ [
+| .trr.p ↦ x₀ ↦ H_all y.0 y.1 y.2 x₀
+| .trl.p ↦ x₁ ↦ H_all_l y.0 y.1 y.2 x₁
+| .id.p ↦ x₀ x₁ ↦ 𝕤T (suc. y.0 y.1 y.2 x₀ x₁)]
 
-def true_neq_false (e : eq Bool true false) : ∅
-  ≔ eq.trr Bool isTrue true false e ()
+{` The universe of strongly fibrant types is strongly fibrant. `}
+def 𝕤SFib : isStrongFibrant SFib ≔ [
+| .trr.p ↦ A ↦ H₀ A
+| .trl.p ↦ B ↦ H₀l B
+| .id.p ↦ A B ↦ 𝕤T (suc. zero. zero. zero. A B)]
 
-def rel_neq_neg (e : eq (Br SFib Bool𝕤 Bool𝕤) (rel Bool𝕤) neg_bridge) : ∅
-  ≔ true_neq_false
-      (eq.ap (Br SFib Bool𝕤 Bool𝕤) Bool trr_true (rel Bool𝕤) neg_bridge e)
+{` SFib as an element of SFib. `}
+def SFib𝕤 : SFib ≔ (SFib, 𝕤SFib)
 
-def sfib_contr (s : isStrongFibrant SFib) (A : SFib)
-  : eq.iscontr (Σ SFib (B ↦ Br SFib A B))
-  ≔ rel s .trr A
+{` Bridges out of A in SFib are contractible. `}
+def sfib_contr (A : SFib) : eq.iscontr (Σ SFib (B ↦ Br SFib A B))
+  ≔ rel 𝕤SFib .trr A
 
-def strict_univalence (s : isStrongFibrant SFib) (A B : SFib)
-  : Br SFib A B ≅ eq SFib A B
-  ≔ sbridge_eqv_eq (SFib, s) A B
-
-def neg_loop (s : isStrongFibrant SFib) : eq SFib Bool𝕤 Bool𝕤
-  ≔ sbridge_to_eq (SFib, s) Bool𝕤 Bool𝕤 neg_bridge
-
-def neg_loop_to_Br (s : isStrongFibrant SFib)
-  : eq (Br SFib Bool𝕤 Bool𝕤) (eq.to_Br SFib Bool𝕤 Bool𝕤 (neg_loop s))
-      neg_bridge
-  ≔ sbridge_fro_to (SFib, s) Bool𝕤 Bool𝕤 neg_bridge
-
-def neg_loop_nontrivial (s : isStrongFibrant SFib)
-  (k : eq (eq SFib Bool𝕤 Bool𝕤) (neg_loop s) rfl.)
-  : ∅
-  ≔ rel_neq_neg
-      (eq.cat (Br SFib Bool𝕤 Bool𝕤) (rel Bool𝕤)
-         (eq.to_Br SFib Bool𝕤 Bool𝕤 (neg_loop s)) neg_bridge
-         (eq.inv (Br SFib Bool𝕤 Bool𝕤)
-            (eq.to_Br SFib Bool𝕤 Bool𝕤 (neg_loop s)) (rel Bool𝕤)
-            (eq.ap (eq SFib Bool𝕤 Bool𝕤) (Br SFib Bool𝕤 Bool𝕤)
-               (eq.to_Br SFib Bool𝕤 Bool𝕤) (neg_loop s) rfl. k))
-         (neg_loop_to_Br s))
-
-def UIP_SFib : Type
-  ≔ (A B : SFib) (p q : eq SFib A B) → eq (eq SFib A B) p q
-
-def uip_not_sfib (u : UIP_SFib) (s : isStrongFibrant SFib) : ∅
-  ≔ neg_loop_nontrivial s (u Bool𝕤 Bool𝕤 (neg_loop s) rfl.)
+{` Bridges in SFib are strict equalities: the two univalences coincide. `}
+def SFib_univalence (A B : SFib) : Br SFib A B ≅ eq SFib A B
+  ≔ sbridge_eqv_eq SFib𝕤 A B
