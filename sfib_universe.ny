@@ -1,11 +1,9 @@
-{` -*- narya-prog-args: ("-proofgeneral" "-parametric" "-direction" "p,rel,Br") -*- `}
+{` -*- narya-prog-args: ("-proofgeneral" "-parametric" "-direction" "p,rel,Br" "-discrete-coreflector") -*- `}
 
-import "isfibrant"
 import "bookhott"
 import "hott_bookhott"
 import "fibrant_types"
 import "isstrongfibrant"
-import "sfib_types"
 import "sfib_axioms"
 import "sfib_eq_lemmas"
 
@@ -180,67 +178,89 @@ def iscontr_of_Br (X0 X1 : Type) (X2 : Br Type X0 X1) (c0 : eq.iscontr X0)
                   (c1 .center) e1
               .to_fro (c2 .center)))))
 
-{` Cube shapes ∂ and fillers T: T zero. is SFib, T (suc. …) is the type of
-bridges in T over the given boundary. `}
-def ∂ : Type ≔ data [
-| zero. : ∂
-| suc. : (y₀ y₁ : ∂) → Br ∂ y₀ y₁ → T y₀ → T y₁ → ∂ ]
+{` Cube shapes ∂ X and fillers T X over an arbitrary type X: T X zero. is X,
+T X (suc. …) is the type of bridges in T X over the given boundary. `}
+def ∂ (X : Type) : Type ≔ data [
+| zero. : ∂ X
+| suc. : (y₀ y₁ : ∂ X) → Br (∂ X) y₀ y₁ → T X y₀ → T X y₁ → ∂ X ]
 
-and T (y : ∂) : Type ≔ match y [
-| zero. ↦ SFib
-| suc. y₀ y₁ y₂ x₀ x₁ ↦ Br T y₂ x₀ x₁]
+and T (X : Type) (y : ∂ X) : Type ≔ match y [
+| zero. ↦ X
+| suc. y₀ y₁ y₂ x₀ x₁ ↦ Br (T X) y₂ x₀ x₁]
 
-{` The type whose contractibility is the .trr.p field of isStrongFibrant (T y).
-`}
-def ΣBrT (y₀ y₁ : ∂) (y₂ : Br ∂ y₀ y₁) (x₀ : T y₀) : Type
-  ≔ Σ (T y₁) (x₁ ↦ Br T y₂ x₀ x₁)
+{` Level-0 hypotheses on X: the based bridge spaces of X are contractible. `}
+def H₀_type (X : Type) : Type ≔ (A : X) → eq.iscontr (Σ X (B ↦ Br X A B))
+
+def H₀l_type (X : Type) : Type ≔ (B : X) → eq.iscontr (Σ X (A ↦ Br X A B))
+
+{` The type whose contractibility is the .trr.p field of
+isStrongFibrant (T X y). `}
+def ΣBrT (X : Type) (y₀ y₁ : ∂ X) (y₂ : Br (∂ X) y₀ y₁) (x₀ : T X y₀)
+  : Type
+  ≔ Σ (T X y₁) (x₁ ↦ Br (T X) y₂ x₀ x₁)
 
 {` The same for .trl.p. `}
-def ΣBrTl (y₀ y₁ : ∂) (y₂ : Br ∂ y₀ y₁) (x₁ : T y₁) : Type
-  ≔ Σ (T y₀) (x₀ ↦ Br T y₂ x₀ x₁)
+def ΣBrTl (X : Type) (y₀ y₁ : ∂ X) (y₂ : Br (∂ X) y₀ y₁) (x₁ : T X y₁)
+  : Type
+  ≔ Σ (T X y₀) (x₀ ↦ Br (T X) y₂ x₀ x₁)
 
-{` Contractibility at every shape, by induction on the bridge y₂: zero. is H₀,
+{` Contractibility at every shape, by induction on the bridge y₂: zero. is h₀,
 suc. is iscontr_of_Br applied to rel H_all plus sym. `}
-def H_all (y₀ y₁ : ∂) (y₂ : Br ∂ y₀ y₁) (x₀ : T y₀)
-  : eq.iscontr (ΣBrT y₀ y₁ y₂ x₀)
+def H_all (X : Type) (h₀ : H₀_type X) (y₀ y₁ : ∂ X) (y₂ : Br (∂ X) y₀ y₁)
+  (x₀ : T X y₀)
+  : eq.iscontr (ΣBrT X y₀ y₁ y₂ x₀)
   ≔ match y₂ [
-| zero. ⤇ H₀ x₀
+| zero. ⤇ h₀ x₀
 | suc. y0 y1 y2 x0 x1 ⤇
     eq.iscontr_retract
-      (rel ΣBrT y2.0 y2.1 (sym y2.2) x₀ (x0.1, x0.2) (x1.1, x1.2))
-      (ΣBrT (suc. y0.0 y1.0 y2.0 x0.0 x1.0) (suc. y0.1 y1.1 y2.1 x0.1 x1.1)
-         (suc. y0 y1 y2 x0 x1) x₀) (v ↦ (v .fst, sym (v .snd)))
-      (u ↦ (u .fst, sym (u .snd))) (u ↦ rfl.)
-      (iscontr_of_Br (ΣBrT y0.0 y0.1 y0.2 x0.0) (ΣBrT y1.0 y1.1 y1.2 x1.0)
-         (rel ΣBrT y2.0 y2.1 (sym y2.2) x₀) (H_all y0.0 y0.1 y0.2 x0.0)
-         (H_all y1.0 y1.1 y1.2 x1.0) (rel H_all y2.0 y2.1 (sym y2.2) x₀)
-         (x0.1, x0.2) (x1.1, x1.2))]
+      (rel (ΣBrT X) y2.0 y2.1 (sym y2.2) x₀ (x0.1, x0.2) (x1.1, x1.2))
+      (ΣBrT X (suc. y0.0 y1.0 y2.0 x0.0 x1.0)
+         (suc. y0.1 y1.1 y2.1 x0.1 x1.1) (suc. y0 y1 y2 x0 x1) x₀)
+      (v ↦ (v .fst, sym (v .snd))) (u ↦ (u .fst, sym (u .snd))) (u ↦ rfl.)
+      (iscontr_of_Br (ΣBrT X y0.0 y0.1 y0.2 x0.0)
+         (ΣBrT X y1.0 y1.1 y1.2 x1.0)
+         (rel (ΣBrT X) y2.0 y2.1 (sym y2.2) x₀)
+         (H_all X h₀ y0.0 y0.1 y0.2 x0.0) (H_all X h₀ y1.0 y1.1 y1.2 x1.0)
+         (rel (H_all X h₀) y2.0 y2.1 (sym y2.2) x₀) (x0.1, x0.2)
+         (x1.1, x1.2))]
 
 {` Mirror image of H_all. `}
-def H_all_l (y₀ y₁ : ∂) (y₂ : Br ∂ y₀ y₁) (x₁ : T y₁)
-  : eq.iscontr (ΣBrTl y₀ y₁ y₂ x₁)
+def H_all_l (X : Type) (h₀l : H₀l_type X) (y₀ y₁ : ∂ X)
+  (y₂ : Br (∂ X) y₀ y₁) (x₁ : T X y₁)
+  : eq.iscontr (ΣBrTl X y₀ y₁ y₂ x₁)
   ≔ match y₂ [
-| zero. ⤇ H₀l x₁
+| zero. ⤇ h₀l x₁
 | suc. y0 y1 y2 x0 x1 ⤇
     eq.iscontr_retract
-      (rel ΣBrTl y2.0 y2.1 (sym y2.2) x₁ (x0.0, x0.2) (x1.0, x1.2))
-      (ΣBrTl (suc. y0.0 y1.0 y2.0 x0.0 x1.0)
+      (rel (ΣBrTl X) y2.0 y2.1 (sym y2.2) x₁ (x0.0, x0.2) (x1.0, x1.2))
+      (ΣBrTl X (suc. y0.0 y1.0 y2.0 x0.0 x1.0)
          (suc. y0.1 y1.1 y2.1 x0.1 x1.1) (suc. y0 y1 y2 x0 x1) x₁)
       (v ↦ (v .fst, sym (v .snd))) (u ↦ (u .fst, sym (u .snd))) (u ↦ rfl.)
-      (iscontr_of_Br (ΣBrTl y0.0 y0.1 y0.2 x0.1)
-         (ΣBrTl y1.0 y1.1 y1.2 x1.1) (rel ΣBrTl y2.0 y2.1 (sym y2.2) x₁)
-         (H_all_l y0.0 y0.1 y0.2 x0.1) (H_all_l y1.0 y1.1 y1.2 x1.1)
-         (rel H_all_l y2.0 y2.1 (sym y2.2) x₁) (x0.0, x0.2) (x1.0, x1.2))]
+      (iscontr_of_Br (ΣBrTl X y0.0 y0.1 y0.2 x0.1)
+         (ΣBrTl X y1.0 y1.1 y1.2 x1.1)
+         (rel (ΣBrTl X) y2.0 y2.1 (sym y2.2) x₁)
+         (H_all_l X h₀l y0.0 y0.1 y0.2 x0.1)
+         (H_all_l X h₀l y1.0 y1.1 y1.2 x1.1)
+         (rel (H_all_l X h₀l) y2.0 y2.1 (sym y2.2) x₁) (x0.0, x0.2)
+         (x1.0, x1.2))]
 
-{` Every T y is strongly fibrant, by corecursion; the only corecursive call is
-in .id.p. `}
-def 𝕤T (y : ∂) : isStrongFibrant (T y) ≔ [
-| .trr.p ↦ x₀ ↦ H_all y.0 y.1 y.2 x₀
-| .trl.p ↦ x₁ ↦ H_all_l y.0 y.1 y.2 x₁
-| .id.p ↦ x₀ x₁ ↦ 𝕤T (suc. y.0 y.1 y.2 x₀ x₁)]
+{` Every T X y is strongly fibrant, by corecursion; the only corecursive call
+is in .id.p. The parameters are crisp (♭) so that the corecursion is
+accepted under the discrete coreflector. `}
+def 𝕤T (X :♭| Type) (h₀ :♭| H₀_type X) (h₀l :♭| H₀l_type X) (y : ∂ X)
+  : isStrongFibrant (T X y)
+  ≔ [
+| .trr.p ↦ x₀ ↦ H_all X h₀ y.0 y.1 y.2 x₀
+| .trl.p ↦ x₁ ↦ H_all_l X h₀l y.0 y.1 y.2 x₁
+| .id.p ↦ x₀ x₁ ↦ 𝕤T X h₀ h₀l (suc. y.0 y.1 y.2 x₀ x₁)]
+
+{` Any type whose based bridge spaces are contractible is strongly fibrant. `}
+def 𝕤X (X :♭| Type) (h₀ :♭| H₀_type X) (h₀l :♭| H₀l_type X)
+  : isStrongFibrant X
+  ≔ 𝕤T X h₀ h₀l zero.
 
 {` The universe of strongly fibrant types is strongly fibrant. `}
-def 𝕤SFib : isStrongFibrant SFib ≔ 𝕤T zero.
+def 𝕤SFib : isStrongFibrant SFib ≔ 𝕤X SFib H₀ H₀l
 
 {` SFib as an element of SFib. `}
 def SFib𝕤 : SFib ≔ (SFib, 𝕤SFib)
