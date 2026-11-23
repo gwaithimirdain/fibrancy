@@ -87,7 +87,7 @@ def Sq𝕗 (A : Fib) (x00 x01 : A .t) (x02 : Br (A .t) x00 x01)
   : Fib
   ≔ (A⁽ᵖᵖ⁾ .t x02 x12 x20 x21, A⁽ᵖᵖ⁾ .f .id.1 x02 x12 .id x20 x21)
 
-{` We can obtain connection squares by applying J to relexivity squares. `}
+{` We can obtain connection squares by applying J to reflexivity squares. `}
 def conn (A : Fib) (x y : A .t) (p : Br (A .t) x y)
   : Sq𝕗 A x y p y y (rel y) p (rel y) .t
   ≔ J A x (z q ↦ Sq𝕗 A x z q z z (rel z) q (rel z)) (rel (rel x)) y p
