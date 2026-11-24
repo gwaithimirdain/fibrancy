@@ -4,6 +4,7 @@ import "bookhott"
 import "isfibrant"
 import "hott_bookhott"
 import "fibrant_types"
+import "condfib"
 
 {` A generic recursive higher coinductive type with one higher field, one lower field, and one recursive lower field.  Note that the "spec" consisting of Γ, A, B, C, τ are modal, so they will not get degenerated in bridges. `}
 
@@ -177,7 +178,7 @@ def id_ℍ_iso (S :♭| ℍspec) (x0 x1 : S .Γ) (x2 : Br (S .Γ) x0 x1)
 {` Finally, we can prove that ℍs are fibrant.  Note that the parameter type Γ is also required to be fibrant (although it should suffice to have connections). `}
 
 def 𝕗ℍspec (S : ℍspec) : Type ≔ sig (
-  Γ : isFibrant (S .Γ),
+  Γ : condFib (S .Γ),
   A : (x₀ x₁ : S .Γ) (x₂ : Br (S .Γ) x₀ x₁) → isFibrant (S .A x₀ x₁ x₂),
   B : (x : S .Γ) → isFibrant (S .B x),
   C : (x₀ x₁ : S .Γ) (x₂ : Br (S .Γ) x₀ x₁) → isFibrant (S .C x₀ x₁ x₂) )
@@ -212,7 +213,7 @@ def 𝕗ℍ (S :♭| ℍspec) (𝕗S :♭| 𝕗ℍspec S) (x : S .Γ) : isFibran
 | .liftr.p ↦ u0 ↦ [
   | .fst.p ⤇ rel (𝕗S .A) x.20 x.21 (sym x.22) .liftr (u0.2 .fst)
   | .fst.1 ⤇
-      rel (𝕗S .A) (rel x.0) x.2 (coconn (S .Γ, 𝕗S .Γ) x.0 x.1 x.2)
+      rel (𝕗S .A) (rel x.0) x.2 (lconn (S .Γ) (𝕗S .Γ) x.0 x.1 x.2)
         .trr (rel u0 .fst)
   | .snd ⤇ rel (𝕗S .B) x.2 .liftr (u0 .snd)
   | .thd.p ↦
@@ -227,18 +228,18 @@ def 𝕗ℍ (S :♭| ℍspec) (𝕗S :♭| 𝕗ℍspec S) (x : S .Γ) : isFibran
         .liftr (u0.2 .thd)
   | .thd.1 ↦ c ↦
       rel 𝕗ℍ S 𝕗S
-          (rel (S .τ) (rel x.0) x.2 (coconn (S .Γ, 𝕗S .Γ) x.0 x.1 x.2)
-             (rel (𝕗S .C) (rel x.0) x.2 (coconn (S .Γ, 𝕗S .Γ) x.0 x.1 x.2)
+          (rel (S .τ) (rel x.0) x.2 (lconn (S .Γ) (𝕗S .Γ) x.0 x.1 x.2)
+             (rel (𝕗S .C) (rel x.0) x.2 (lconn (S .Γ) (𝕗S .Γ) x.0 x.1 x.2)
               .liftl c))
         .trr
           (rel u0
            .thd.1
-             (rel (𝕗S .C) (rel x.0) x.2 (coconn (S .Γ, 𝕗S .Γ) x.0 x.1 x.2)
+             (rel (𝕗S .C) (rel x.0) x.2 (lconn (S .Γ) (𝕗S .Γ) x.0 x.1 x.2)
               .trl c))]
 | .liftl.p ↦ u1 ↦ [
   | .fst.p ⤇ rel (𝕗S .A) x.20 x.21 (sym x.22) .liftl (u1.2 .fst)
   | .fst.1 ⤇
-      rel (𝕗S .A) x.2 (rel x.1) (conn (S .Γ, 𝕗S .Γ) x.0 x.1 x.2)
+      rel (𝕗S .A) x.2 (rel x.1) (rconn (S .Γ) (𝕗S .Γ) x.0 x.1 x.2)
         .trl (rel u1 .fst)
   | .snd ⤇ rel (𝕗S .B) x.2 .liftl (u1 .snd)
   | .thd.p ↦
@@ -253,42 +254,39 @@ def 𝕗ℍ (S :♭| ℍspec) (𝕗S :♭| 𝕗ℍspec S) (x : S .Γ) : isFibran
         .liftl (u1.2 .thd)
   | .thd.1 ↦ c ↦
       rel 𝕗ℍ S 𝕗S
-          (rel (S .τ) x.2 (rel x.1) (conn (S .Γ, 𝕗S .Γ) x.0 x.1 x.2)
-             (rel (𝕗S .C) x.2 (rel x.1) (conn (S .Γ, 𝕗S .Γ) x.0 x.1 x.2)
+          (rel (S .τ) x.2 (rel x.1) (rconn (S .Γ) (𝕗S .Γ) x.0 x.1 x.2)
+             (rel (𝕗S .C) x.2 (rel x.1) (rconn (S .Γ) (𝕗S .Γ) x.0 x.1 x.2)
               .liftr c))
         .trl
           (rel u1
            .thd.1
-             (rel (𝕗S .C) x.2 (rel x.1) (conn (S .Γ, 𝕗S .Γ) x.0 x.1 x.2)
+             (rel (𝕗S .C) x.2 (rel x.1) (rconn (S .Γ) (𝕗S .Γ) x.0 x.1 x.2)
               .trr c))]
 | .id.p ↦ u0 u1 ↦
     𝕗eqv (ℍ (Shat S) (x.0, x.1, x.2, u0, u1)) (ℍ⁽ᵖ⁾ S x.2 u0 u1)
       (id_ℍ_iso S x.0 x.1 x.2 u0 u1)
       (𝕗ℍ (Shat S) (𝕗Shat S 𝕗S) (x.0, x.1, x.2, u0, u1))]
 
-{` Since Γhat involves ℍ, we have to prove mutually that Γhat is also fibrant.  I haven't thought about generator tricks to ensure this is productive. `}
+{` Since Γhat involves ℍ, we have to prove mutually that Γhat is also conditionally fibrant.  I haven't thought about generator tricks to ensure this is productive. `}
 
-and 𝕗Γhat (S :♭| ℍspec) (𝕗S :♭| 𝕗ℍspec S) : isFibrant (Shat S .Γ)
-  ≔ 𝕗eqv
-      (Σ (S .Γ × S .Γ)
-         (x ↦ Br (S .Γ) (x .0) (x .1) × (ℍ S (x .0) × ℍ S (x .1))))
-      (Shat S .Γ)
-      (to ≔ x ↦ (x .0 .0, x .0 .1, x .1 .0, x .1 .1 .0, x .1 .1 .1),
-       fro ≔ x ↦ ((x .0, x .1), (x .2, (x .3, x .4))),
+and cΓhat (S :♭| ℍspec) (𝕗S :♭| 𝕗ℍspec S) : condFib (Shat S .Γ)
+  ≔ condfib_eqv
+      (Σ (Σ (S .Γ × S .Γ) (x ↦ Br (S .Γ) (x .0) (x .1)))
+         (x ↦ (ℍ S (x .0 .0) × ℍ S (x .0 .1)))) (Shat S .Γ)
+      (to ≔ x ↦ (x .0 .0 .0, x .0 .0 .1, x .0 .1, x .1 .0, x .1 .1),
+       fro ≔ x ↦ (((x .0, x .1), x .2), (x .3, x .4)),
        fro_to ≔ _ ↦ rfl.,
        to_fro ≔ _ ↦ rfl.,
        to_fro_to ≔ _ ↦ rfl.)
-      (𝕗Σ (S .Γ × S .Γ)
-         (x ↦ Br (S .Γ) (x .fst) (x .snd) × (ℍ S (x .fst) × ℍ S (x .snd)))
-         (𝕗prod (S .Γ) (S .Γ) (𝕗S .Γ) (𝕗S .Γ))
+      (cfΣ (Σ (S .Γ × S .Γ) (x ↦ rel S .Γ (x .fst) (x .snd)))
+         (x ↦ ℍ S (x .fst .fst) × ℍ S (x .fst .snd))
+         (cfTotBr (S .Γ) (𝕗S .Γ))
          (x ↦
-          𝕗prod (Br (S .Γ) (x .fst) (x .snd)) (ℍ S (x .fst) × ℍ S (x .snd))
-            (rel (𝕗S .Γ) .id (x .0) (x .1))
-            (𝕗prod (ℍ S (x .fst)) (ℍ S (x .snd)) (𝕗ℍ S 𝕗S (x .0))
-               (𝕗ℍ S 𝕗S (x .1)))))
+          𝕗prod (ℍ S (x .fst .fst)) (ℍ S (x .fst .snd)) (𝕗ℍ S 𝕗S (x .0 .0))
+            (𝕗ℍ S 𝕗S (x .0 .1))))
 
 and 𝕗Shat (S :♭| ℍspec) (𝕗S :♭| 𝕗ℍspec S) : 𝕗ℍspec (Shat S) ≔ (
-  Γ ≔ 𝕗Γhat S 𝕗S,
+  Γ ≔ cΓhat S 𝕗S,
   A ≔ (y0 y1 y2 ↦
     rel (𝕗S .A) (y0 .2) (y1 .2) (sym (y2 .2))
       .id (y2 .u0 .fst) (y2 .u1 .fst)),
