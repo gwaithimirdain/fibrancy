@@ -6,10 +6,12 @@ import "bookhott"
 import "hott_bookhott"
 
 {` Contractibility `}
+
 def isContr (A : Fib) : Type ≔ sig (
   center : A .t,
   contract : (a : A .t) → Br (A .t) a center )
 
+{` Based path spaces are contractible `}
 def iscontr_idfrom (A : Fib) (a0 : A .t)
   : isContr (Σ𝕗 A (a1 ↦ Id𝕗 A a0 a1))
   ≔ (
@@ -27,6 +29,109 @@ def iscontr_idto (A : Fib) (a1 : A .t) : isContr (Σ𝕗 A (a0 ↦ Id𝕗 A a0 a
     let a0 ≔ a0_a2 .fst in
     let a2 ≔ a0_a2 .snd in
     (a2, conn A a0 a1 a2))
+
+{` More generally, spaces of lifts are contractible `}
+def iscontr_liftr (A0 A1 : Fib) (A2 : Br Fib A0 A1) (a0 : A0 .t)
+  : isContr (Σ𝕗 A1 (a1 ↦ Idd𝕗 A0 A1 A2 a0 a1))
+  ≔ (
+  center ≔ (A2 .f .trr a0, A2 .f .liftr a0),
+  contract ≔ a12 ↦ (
+    rel A2 .f .id.2 (a12 .snd) (A2 .f .liftr a0) .trr (rel a0),
+    sym (rel A2 .f .id.2 (a12 .snd) (A2 .f .liftr a0) .liftr (rel a0))))
+
+def iscontr_liftl (A0 A1 : Fib) (A2 : Br Fib A0 A1) (a1 : A1 .t)
+  : isContr (Σ𝕗 A0 (a0 ↦ Idd𝕗 A0 A1 A2 a0 a1))
+  ≔ (
+  center ≔ (A2 .f .trl a1, A2 .f .liftl a1),
+  contract ≔ a02 ↦ (
+    rel A2 .f .id.2 (a02 .snd) (A2 .f .liftl a1) .trl (rel a1),
+    sym (rel A2 .f .id.2 (a02 .snd) (A2 .f .liftl a1) .liftl (rel a1))))
+
+def prop_iscontr (A : Fib) (Ac : isContr A) (x y : A .t) : Br (A .t) x y
+  ≔ concat A x (Ac .center) y (Ac .contract x)
+      (inverse A y (Ac .center) (Ac .contract y))
+
+{` Any two paths in a contractible space are equal. `}
+def eq_iscontr (A : Fib) (Ac : isContr A) (x y : A .t) (p q : Br A .t x y)
+  : Br (Br A .t x y) p q
+  ≔ sym
+        (A⁽ᵖᵖᵖ⁾
+         .f
+         .id.1 (rel Ac .contract (rel x)) (rel Ac .contract (rel y)))
+      .id.1 (sym (rel Ac .contract p)) (sym (rel Ac .contract q))
+      .trl (Ac .center)⁽ᵖᵖ⁾
+
+{` Sums of contractible types are contractible `}
+def iscontr_Σ (A : Fib) (B : A .t → Fib) (Ac : isContr A)
+  (Bc : (a : A .t) → isContr (B a))
+  : isContr (Σ𝕗 A B)
+  ≔ (
+  center ≔ (Ac .center, Bc (Ac .center) .center),
+  contract ≔ u ↦ (
+    Ac .contract (u .fst),
+    rel (Br B (Ac .contract (u .fst)))
+      .f
+      .id.1 (rel (u .snd))
+        (Bc (Ac .center)
+         .contract (Br B (Ac .contract (u .fst)) .f .trr (u .snd)))
+      .trr (Br B (Ac .contract (u .fst)) .f .liftr (u .snd))))
+
+{` Contractibility transfers to retracts. `}
+def iscontr_retract (A B : Fib) (r : A .t → B .t) (s : B .t → A .t)
+  (ε : (b : B .t) → Br (B .t) (r (s b)) b) (Ac : isContr A)
+  : isContr B
+  ≔ (
+  center ≔ r (Ac .center),
+  contract ≔ b ↦
+    concat B b (r (s b)) (r (Ac .center)) (inverse B (r (s b)) b (ε b))
+      (rel r (Ac .contract (s b))))
+
+{` The base of a contracible Σ under contractible fibers is contractible. `}
+def iscontr_Σbase (A : Fib) (B : A .t → Fib)
+  (Bc : (a : A .t) → isContr (B a)) (ABc : isContr (Σ𝕗 A B))
+  : isContr A
+  ≔ (
+  center ≔ ABc .center .fst,
+  contract ≔ a ↦ ABc .contract (a, Bc a .center) .fst)
+
+{` The fiber of a contractible Σ over a contractible base is contractible. `}
+def iscontr_Σfib (A : Fib) (B : A .t → Fib) (Ac : isContr A)
+  (ABc : isContr (Σ𝕗 A B)) (a : A .t)
+  : isContr (B a)
+  ≔ iscontr_retract (Σ𝕗 A B) (B a)
+      (u ↦ Br B (prop_iscontr A Ac (u .0) a) .f .trr (u .1)) (b ↦ (a, b))
+      (b ↦
+       B⁽ᵖᵖ⁾ (sym (eq_iscontr A Ac a a (prop_iscontr A Ac a a) (rel a)))
+       .f
+       .id.1 (Br B (prop_iscontr A Ac a a) .f .liftr b) (rel b)
+       .trr (rel b)) ABc
+
+{` And likewise for an "inner contractibility" `}
+def iscontr_Σmid (A : Fib) (B : A .t → Fib)
+  (C : (a : A .t) (b : B a .t) → Fib) (Bc : (a : A .t) → isContr (B a))
+  (s : (a : A .t) → B a .t) (ABCc : isContr (Σ𝕗 A (a ↦ Σ𝕗 (B a) (C a))))
+  : isContr (Σ𝕗 A (a ↦ C a (s a)))
+  ≔ iscontr_retract (Σ𝕗 A (a ↦ Σ𝕗 (B a) (C a))) (Σ𝕗 A (a ↦ C a (s a)))
+      (v ↦
+       (v .0,
+        Br (C (v .0))
+            (prop_iscontr (B (v .0)) (Bc (v .0)) (s (v .0)) (v .1 .0))
+          .f
+          .trl (v .1 .1))) (u ↦ (u .0, (s (u .0), u .1)))
+      (u ↦
+       (rel (u .0),
+        (C (u .0))⁽ᵖᵖ⁾
+            (sym
+               (eq_iscontr (B (u .0)) (Bc (u .0)) (s (u .0)) (s (u .0))
+                  (prop_iscontr (B (u .0)) (Bc (u .0)) (s (u .0))
+                     (s (u .0))) (rel (s (u .0)))))
+          .f
+          .id.1
+            (Br (C (u .0))
+                 (prop_iscontr (B (u .0)) (Bc (u .0)) (s (u .0)) (s (u .0)))
+             .f
+             .liftl (u .1)) (rel (u .1))
+          .trl (rel (u .1)))) ABCc
 
 {` 1-1 correspondences `}
 
