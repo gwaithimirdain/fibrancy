@@ -37,7 +37,7 @@ def eq_ℍ (S :♭| ℍspec) (x0 x1 : S .Γ) (x2 : eq (S .Γ) x0 x1) (u0 : ℍ S
 
 axiom ℍ_ext (S :♭| ℍspec) (x : S .Γ) (u0 u1 : ℍ S x)
   (u2 : eq_ℍ S x x rfl. u0 u1)
-  : eqd (S .Γ) (ℍ S) x x rfl. u0 u1
+  : eq (ℍ S x) u0 u1
 
 {` We also need a similar eq-extensionality principle for its bridges. `}
 
@@ -311,3 +311,44 @@ and 𝕗Shat (S :♭| ℍspec) (𝕗S :♭| 𝕗ℍspec S) : 𝕗ℍspec (Shat S
          ((𝕗S .C) (y0 .x1) (y1 .x1) (y2 .x1)))
       (c ↦
        rel (𝕗S .C) (y0 .x2) (y1 .x2) (sym (y2 .x2)) .id (c .fst) (c .snd))))
+
+{` In particular, fibrancy can be represented with an appropriate spec. `}
+
+def isFibrantSpec : ℍspec ≔ (
+  Γ ≔ Type,
+  A ≔ A0 A1 A2 ↦ sig (
+    trr : A0 → A1,
+    liftr : (a0 : A0) → A2 a0 (trr a0),
+    trl : A1 → A0,
+    liftl : (a1 : A1) → A2 (trl a1) a1 ),
+  B ≔ _ ↦ sig (),
+  C ≔ A0 A1 _ ↦ A0 × A1,
+  τ ≔ A0 A1 A2 a ↦ A2 (a .0) (a .1))
+
+def isFibrantℍ ≔ ℍ isFibrantSpec
+
+def isFibrant_of_ℍ (A : Type) (fA : isFibrantℍ A) : isFibrant A ≔ [
+| .trr.p ↦ fA.2 .fst .trr
+| .trl.p ↦ fA.2 .fst .trl
+| .liftr.p ↦ fA.2 .fst .liftr
+| .liftl.p ↦ fA.2 .fst .liftl
+| .id.p ↦ a0 a1 ↦ isFibrant_of_ℍ (A.2 a0 a1) (fA.2 .thd (a0, a1))]
+
+def ℍ_of_isFibrant (A : Type) (fA : isFibrant A) : isFibrantℍ A ≔ [
+| .fst.p ↦ (
+    trr ≔ fA.2 .trr,
+    liftr ≔ fA.2 .liftr,
+    trl ≔ fA.2 .trl,
+    liftl ≔ fA.2 .liftl)
+| .snd ↦ ()
+| .thd.p ↦ a ↦ ℍ_of_isFibrant (A.2 (a .0) (a .1)) (fA.2 .id (a .0) (a .1))]
+
+def ℍ_retract_of_isFibrant (A : Type) (fA : isFibrantℍ A)
+  : eq (isFibrantℍ A) (ℍ_of_isFibrant A (isFibrant_of_ℍ A fA)) fA
+  ≔ ℍ_ext isFibrantSpec A (ℍ_of_isFibrant A (isFibrant_of_ℍ A fA)) fA
+      [ .fst.p ↦ rfl.
+      | .snd ↦ rfl.
+      | .thd.p ↦ a ↦
+          ℍ_retract_of_isFibrant (A.2 (a .fst) (a .snd)) (fA.2 .thd a)]
+
+{` Proving the other round-trip equality would require an extensionality axiom for isFibrant, for which it would be tricky to formulate the corecursive case. `}
