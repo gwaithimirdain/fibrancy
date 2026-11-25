@@ -4,7 +4,7 @@ import "bookhott"
 import "isfibrant"
 import "hott_bookhott"
 import "fibrant_types"
-import "wkconn"
+import "coh_conn"
 
 {` A generic recursive higher coinductive type with one higher field, one lower field, and one recursive lower field.  Note that the "spec" consisting of Γ, A, B, C, τ are modal, so they will not get degenerated in bridges. `}
 
@@ -213,7 +213,7 @@ def 𝕗ℍ (S :♭| ℍspec) (𝕗S :♭| 𝕗ℍspec S) (x : S .Γ) : isFibran
 | .liftr.p ↦ u0 ↦ [
   | .fst.p ⤇ rel (𝕗S .A) x.20 x.21 (sym x.22) .liftr (u0.2 .fst)
   | .fst.1 ⤇
-      rel (𝕗S .A) (rel x.0) x.2 ((𝕗S .Γ) .lconn x.0 x.1 x.2)
+      rel (𝕗S .A) (rel x.0) x.2 ((𝕗S .Γ) x.0 x.1 x.2 .lconn .0)
         .trr (rel u0 .fst)
   | .snd ⤇ rel (𝕗S .B) x.2 .liftr (u0 .snd)
   | .thd.p ↦
@@ -228,17 +228,18 @@ def 𝕗ℍ (S :♭| ℍspec) (𝕗S :♭| 𝕗ℍspec S) (x : S .Γ) : isFibran
         .liftr (u0.2 .thd)
   | .thd.1 ↦ c ↦
       rel 𝕗ℍ S 𝕗S
-          (rel (S .τ) (rel x.0) x.2 ((𝕗S .Γ) .lconn x.0 x.1 x.2)
-             (rel (𝕗S .C) (rel x.0) x.2 ((𝕗S .Γ) .lconn x.0 x.1 x.2)
+          (rel (S .τ) (rel x.0) x.2 ((𝕗S .Γ) x.0 x.1 x.2 .lconn .0)
+             (rel (𝕗S .C) (rel x.0) x.2 ((𝕗S .Γ) x.0 x.1 x.2 .lconn .0)
               .liftl c))
         .trr
           (rel u0
            .thd.1
-             (rel (𝕗S .C) (rel x.0) x.2 ((𝕗S .Γ) .lconn x.0 x.1 x.2) .trl c))]
+             (rel (𝕗S .C) (rel x.0) x.2 ((𝕗S .Γ) x.0 x.1 x.2 .lconn .0)
+              .trl c))]
 | .liftl.p ↦ u1 ↦ [
   | .fst.p ⤇ rel (𝕗S .A) x.20 x.21 (sym x.22) .liftl (u1.2 .fst)
   | .fst.1 ⤇
-      rel (𝕗S .A) x.2 (rel x.1) ((𝕗S .Γ) .rconn x.0 x.1 x.2)
+      rel (𝕗S .A) x.2 (rel x.1) ((𝕗S .Γ) x.0 x.1 x.2 .rconn .0)
         .trl (rel u1 .fst)
   | .snd ⤇ rel (𝕗S .B) x.2 .liftl (u1 .snd)
   | .thd.p ↦
@@ -253,13 +254,14 @@ def 𝕗ℍ (S :♭| ℍspec) (𝕗S :♭| 𝕗ℍspec S) (x : S .Γ) : isFibran
         .liftl (u1.2 .thd)
   | .thd.1 ↦ c ↦
       rel 𝕗ℍ S 𝕗S
-          (rel (S .τ) x.2 (rel x.1) ((𝕗S .Γ) .rconn x.0 x.1 x.2)
-             (rel (𝕗S .C) x.2 (rel x.1) ((𝕗S .Γ) .rconn x.0 x.1 x.2)
+          (rel (S .τ) x.2 (rel x.1) ((𝕗S .Γ) x.0 x.1 x.2 .rconn .0)
+             (rel (𝕗S .C) x.2 (rel x.1) ((𝕗S .Γ) x.0 x.1 x.2 .rconn .0)
               .liftr c))
         .trl
           (rel u1
            .thd.1
-             (rel (𝕗S .C) x.2 (rel x.1) ((𝕗S .Γ) .rconn x.0 x.1 x.2) .trr c))]
+             (rel (𝕗S .C) x.2 (rel x.1) ((𝕗S .Γ) x.0 x.1 x.2 .rconn .0)
+              .trr c))]
 | .id.p ↦ u0 u1 ↦
     𝕗eqv (ℍ (Shat S) (x.0, x.1, x.2, u0, u1)) (ℍ⁽ᵖ⁾ S x.2 u0 u1)
       (id_ℍ_iso S x.0 x.1 x.2 u0 u1)
